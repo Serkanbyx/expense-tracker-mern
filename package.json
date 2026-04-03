@@ -1,0 +1,16 @@
+{
+  "name": "expense-tracker-mern",
+  "version": "1.0.0",
+  "description": "Full-stack expense tracker with charts, built with MongoDB, Express, React & Node.js",
+  "private": true,
+  "keywords": [
+    "expense-tracker",
+    "mern",
+    "mongodb",
+    "express",
+    "react",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
