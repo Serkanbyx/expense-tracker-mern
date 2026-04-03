@@ -63,8 +63,9 @@ const authLimiter = rateLimit({
 app.use(globalLimiter);
 app.use('/api/auth', authLimiter);
 
-// --- Routes (will be mounted in later steps) ---
-// TODO: app.use('/api', routes);
+// --- Routes ---
+const routes = require('./routes');
+app.use('/api', routes);
 
 // --- MongoDB connection & server start ---
 mongoose.set('debug', NODE_ENV !== 'production');
