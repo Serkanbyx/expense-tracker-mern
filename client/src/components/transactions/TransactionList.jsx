@@ -72,7 +72,7 @@ const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }) =
           type="button"
           onClick={onCancel}
           disabled={isDeleting}
-          className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
         >
           Cancel
         </button>
@@ -80,7 +80,7 @@ const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }) =
           type="button"
           onClick={onConfirm}
           disabled={isDeleting}
-          className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
         >
           {isDeleting ? 'Deleting…' : 'Delete'}
         </button>
@@ -92,12 +92,12 @@ const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }) =
 /* ── Action Buttons ──────────────────────────────────── */
 
 const ActionButtons = ({ onEdit, onDelete }) => (
-  <div className="flex items-center justify-end gap-1.5">
+  <div className="flex items-center justify-end gap-1">
     <button
       type="button"
       onClick={onEdit}
       aria-label="Edit transaction"
-      className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
     >
       <PencilSquareIcon className="h-5 w-5" />
     </button>
@@ -105,7 +105,7 @@ const ActionButtons = ({ onEdit, onDelete }) => (
       type="button"
       onClick={onDelete}
       aria-label="Delete transaction"
-      className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
     >
       <TrashIcon className="h-5 w-5" />
     </button>

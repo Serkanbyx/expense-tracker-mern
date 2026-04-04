@@ -10,6 +10,7 @@ import {
 import { TagIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
+import useMediaQuery from '../../hooks/useMediaQuery';
 import { ChartSkeleton } from '../ui/Skeleton';
 import EmptyState from '../ui/EmptyState';
 import ErrorMessage from '../ui/ErrorMessage';
@@ -92,6 +93,7 @@ const CategoryChart = () => {
   const { categoryData, isLoading, error, fetchCategoryBreakdown } =
     useTransactions();
   const [activeTab, setActiveTab] = useState('expense');
+  const isMobile = useMediaQuery('(max-width: 639px)');
 
   useEffect(() => {
     fetchCategoryBreakdown({ type: activeTab });
@@ -117,9 +119,9 @@ const CategoryChart = () => {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3 className="text-base font-semibold text-gray-800 sm:text-lg">
           Category Breakdown
         </h3>
 
@@ -129,7 +131,7 @@ const CategoryChart = () => {
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+              className={`min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition-all sm:min-h-0 sm:py-1.5 ${
                 activeTab === key
                   ? 'bg-white text-gray-800 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -149,16 +151,16 @@ const CategoryChart = () => {
           compact
         />
       ) : (
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={isMobile ? 280 : 350}>
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              outerRadius={110}
-              innerRadius={55}
+              outerRadius={isMobile ? 80 : 110}
+              innerRadius={isMobile ? 40 : 55}
               dataKey="value"
-              label={renderCustomLabel}
+              label={isMobile ? false : renderCustomLabel}
               labelLine={false}
               stroke="#fff"
               strokeWidth={2}

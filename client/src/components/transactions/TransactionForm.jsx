@@ -79,7 +79,7 @@ const TypeToggle = ({ activeType, onChange, disabled }) => (
           type="button"
           disabled={disabled}
           onClick={() => onChange(type)}
-          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+          className={`flex-1 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
             isActive ? activeStyle : 'text-gray-500 hover:text-gray-700'
           } disabled:opacity-50`}
         >
@@ -221,7 +221,7 @@ const TransactionForm = ({ transaction = null, onClose }) => {
     Object.keys(errors).length === 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 transition-opacity"
@@ -229,8 +229,8 @@ const TransactionForm = ({ transaction = null, onClose }) => {
         aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+      {/* Modal — full-screen on mobile, centered card on sm+ */}
+      <div className="relative flex max-h-full w-full flex-col overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:max-w-md sm:rounded-xl">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -240,7 +240,7 @@ const TransactionForm = ({ transaction = null, onClose }) => {
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
@@ -366,14 +366,14 @@ const TransactionForm = ({ transaction = null, onClose }) => {
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!isValid || isSubmitting}
-              className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
             >
               {isSubmitting
                 ? 'Saving…'

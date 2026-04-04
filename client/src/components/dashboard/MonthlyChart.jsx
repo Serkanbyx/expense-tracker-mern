@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { ChartBarIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
+import useMediaQuery from '../../hooks/useMediaQuery';
 import { ChartSkeleton } from '../ui/Skeleton';
 import EmptyState from '../ui/EmptyState';
 import ErrorMessage from '../ui/ErrorMessage';
@@ -61,6 +62,7 @@ const transformMonthlyData = (rawData) => {
 const MonthlyChart = () => {
   const { monthlyData, isLoading, error, fetchMonthlyBreakdown } =
     useTransactions();
+  const isMobile = useMediaQuery('(max-width: 639px)');
 
   useEffect(() => {
     fetchMonthlyBreakdown();
@@ -86,8 +88,8 @@ const MonthlyChart = () => {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-lg font-semibold text-gray-800">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+      <h3 className="mb-4 text-base font-semibold text-gray-800 sm:text-lg">
         Monthly Income vs Expense
       </h3>
 
@@ -99,22 +101,26 @@ const MonthlyChart = () => {
           compact
         />
       ) : (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={isMobile ? 240 : 300}>
           <BarChart
             data={chartData}
-            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+            margin={isMobile
+              ? { top: 5, right: 10, left: -10, bottom: 5 }
+              : { top: 5, right: 20, left: 10, bottom: 5 }
+            }
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 12, fill: '#6b7280' }}
+              tick={{ fontSize: isMobile ? 10 : 12, fill: '#6b7280' }}
               tickLine={false}
               axisLine={{ stroke: '#e5e7eb' }}
             />
             <YAxis
-              tick={{ fontSize: 12, fill: '#6b7280' }}
+              tick={{ fontSize: isMobile ? 10 : 12, fill: '#6b7280' }}
               tickLine={false}
               axisLine={false}
+              width={isMobile ? 40 : 60}
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip content={<CustomTooltip />} />

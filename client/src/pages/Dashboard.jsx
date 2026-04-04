@@ -17,7 +17,7 @@ const Dashboard = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Dashboard</h1>
 
       <SummaryCards />
 

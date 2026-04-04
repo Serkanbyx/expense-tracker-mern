@@ -32,15 +32,18 @@ const Transactions = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
+          Transactions
+        </h1>
         <button
           type="button"
           onClick={handleAdd}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+          className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
         >
           <PlusIcon className="h-5 w-5" />
-          Add Transaction
+          <span className="hidden sm:inline">Add Transaction</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
