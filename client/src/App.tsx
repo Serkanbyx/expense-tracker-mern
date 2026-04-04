@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { TransactionProvider } from './context/TransactionContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/Login';
@@ -27,7 +28,9 @@ const App = () => {
           <Route
             element={
               <ProtectedRoute>
-                <AppLayout />
+                <TransactionProvider>
+                  <AppLayout />
+                </TransactionProvider>
               </ProtectedRoute>
             }
           >
