@@ -175,10 +175,179 @@ const deleteTransaction = async (req, res) => {
   }
 };
 
+const getSummary = async (req, res) => {
+  try {
+    const { month } = req.query;
+
+    const matchStage = {
+      userId: new mongoose.Types.ObjectId(req.user._id),
+    };
+
+    if (month) {
+      if (!MONTH_REGEX.test(month)) {
+        return res
+          .status(400)
+          .json({ message: "Invalid month format. Use YYYY-MM" });
+      }
+
+      const parsedDate = parse(month, "yyyy-MM", new Date());
+      matchStage.date = {
+        $gte: startOfMonth(parsedDate),
+        $lte: endOfMonth(parsedDate),
+      };
+    }
+
+    const result = await Transaction.aggregate([
+      { $match: matchStage },
+      { $group: { _id: "$type", total: { $sum: "$amount" } } },
+    ]);
+
+    const totals = result.reduce(
+      (acc, item) => {
+        if (item._id === "income") acc.totalIncome = item.total;
+        if (item._id === "expense") acc.totalExpense = item.total;
+        return acc;
+      },
+      { totalIncome: 0, totalExpense: 0 }
+    );
+
+    totals.netBalance = totals.totalIncome - totals.totalExpense;
+
+    res.status(200).json(totals);
+  } catch (error) {
+    console.error("GetSummary error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getMonthlyBreakdown = async (req, res) => {
+  try {
+    const { type, year } = req.query;
+
+    const matchStage = {
+      userId: new mongoose.Types.ObjectId(req.user._id),
+    };
+
+    if (type) {
+      if (!TRANSACTION_TYPES.includes(type)) {
+        return res.status(400).json({
+          message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(", ")}`,
+        });
+      }
+      matchStage.type = type;
+    }
+
+    if (year) {
+      const parsedYear = parseInt(year, 10);
+
+      if (isNaN(parsedYear) || parsedYear < 2000 || parsedYear > 2100) {
+        return res
+          .status(400)
+          .json({ message: "Invalid year. Must be between 2000 and 2100" });
+      }
+
+      matchStage.date = {
+        $gte: new Date(`${parsedYear}-01-01`),
+        $lte: new Date(`${parsedYear}-12-31T23:59:59.999Z`),
+      };
+    }
+
+    const result = await Transaction.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$date" },
+            year: { $year: "$date" },
+            type: "$type",
+          },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id.month",
+          year: "$_id.year",
+          type: "$_id.type",
+          total: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("GetMonthlyBreakdown error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getCategoryBreakdown = async (req, res) => {
+  try {
+    const { type, month } = req.query;
+
+    const matchStage = {
+      userId: new mongoose.Types.ObjectId(req.user._id),
+    };
+
+    if (type) {
+      if (!TRANSACTION_TYPES.includes(type)) {
+        return res.status(400).json({
+          message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(", ")}`,
+        });
+      }
+      matchStage.type = type;
+    }
+
+    if (month) {
+      if (!MONTH_REGEX.test(month)) {
+        return res
+          .status(400)
+          .json({ message: "Invalid month format. Use YYYY-MM" });
+      }
+
+      const parsedDate = parse(month, "yyyy-MM", new Date());
+      matchStage.date = {
+        $gte: startOfMonth(parsedDate),
+        $lte: endOfMonth(parsedDate),
+      };
+    }
+
+    const result = await Transaction.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: "$amount" },
+        },
+      },
+      { $sort: { total: -1 } },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          total: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("GetCategoryBreakdown error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createTransaction,
   getTransactions,
   getTransactionById,
   updateTransaction,
   deleteTransaction,
+  getSummary,
+  getMonthlyBreakdown,
+  getCategoryBreakdown,
 };
