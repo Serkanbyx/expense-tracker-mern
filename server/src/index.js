@@ -67,6 +67,11 @@ app.use('/api/auth', authLimiter);
 const routes = require('./routes');
 app.use('/api', routes);
 
+// --- Error handling (must be after all route mounts) ---
+const { notFound, errorHandler } = require('./middleware/errorHandler');
+app.use(notFound);
+app.use(errorHandler);
+
 // --- MongoDB connection & server start ---
 mongoose.set('debug', NODE_ENV !== 'production');
 
