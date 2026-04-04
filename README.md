@@ -82,7 +82,15 @@ npm run dev
 
 ### Frontend — Netlify
 
-> Deployment steps will be documented in Step 38.
+1. **Create a new site** on [Netlify](https://netlify.com) and connect your GitHub repository
+2. **Configure the build settings:**
+   - **Base Directory:** `client`
+   - **Build Command:** `npm run build`
+   - **Publish Directory:** `client/dist`
+3. **Set environment variables** in the Netlify dashboard (Site settings → Environment variables):
+   - `VITE_API_URL` = your Render backend URL (e.g., `https://your-api.onrender.com/api`)
+4. **SPA routing** is handled automatically via `client/public/_redirects`
+5. **Deploy** — Netlify will automatically build and deploy on every push
 
 ## API Endpoints
 
