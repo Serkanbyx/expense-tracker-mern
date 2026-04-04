@@ -1,11 +1,28 @@
-function App() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <h1 className="text-3xl font-bold text-indigo-600">
-        Expense Tracker
-      </h1>
-    </div>
-  )
-}
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-export default App
+const App = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: { fontSize: '14px' },
+          }}
+        />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+};
+
+export default App;
