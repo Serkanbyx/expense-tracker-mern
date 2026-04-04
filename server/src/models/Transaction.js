@@ -59,4 +59,9 @@ const transactionSchema = new mongoose.Schema(
 
 transactionSchema.index({ userId: 1, date: -1 });
 
-module.exports = mongoose.model('Transaction', transactionSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+Transaction.TRANSACTION_TYPES = TRANSACTION_TYPES;
+Transaction.CATEGORIES = CATEGORIES;
+
+module.exports = Transaction;
