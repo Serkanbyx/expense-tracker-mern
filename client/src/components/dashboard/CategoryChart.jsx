@@ -7,10 +7,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { TagIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
-
-const SKELETON_PULSE = 'animate-pulse rounded bg-gray-200';
+import { ChartSkeleton } from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
+import ErrorMessage from '../ui/ErrorMessage';
 
 const CATEGORY_COLORS = [
   '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -22,15 +24,6 @@ const TAB_OPTIONS = [
   { key: 'expense', label: 'Expense' },
   { key: 'income', label: 'Income' },
 ];
-
-const ChartSkeleton = () => (
-  <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <div className={`${SKELETON_PULSE} mb-6 h-5 w-56`} />
-    <div className="flex items-center justify-center">
-      <div className={`${SKELETON_PULSE} h-64 w-64 rounded-full`} />
-    </div>
-  </div>
-);
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
@@ -96,7 +89,8 @@ const transformCategoryData = (rawData) => {
 };
 
 const CategoryChart = () => {
-  const { categoryData, isLoading, fetchCategoryBreakdown } = useTransactions();
+  const { categoryData, isLoading, error, fetchCategoryBreakdown } =
+    useTransactions();
   const [activeTab, setActiveTab] = useState('expense');
 
   useEffect(() => {
@@ -108,7 +102,19 @@ const CategoryChart = () => {
     [categoryData],
   );
 
-  if (isLoading) return <ChartSkeleton />;
+  if (isLoading) return <ChartSkeleton circle />;
+
+  if (error && !categoryData?.length) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <ErrorMessage
+          message="Failed to load category breakdown."
+          onRetry={() => fetchCategoryBreakdown({ type: activeTab })}
+          compact
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -136,11 +142,12 @@ const CategoryChart = () => {
       </div>
 
       {chartData.length === 0 ? (
-        <div className="flex h-72 items-center justify-center">
-          <p className="text-sm text-gray-400">
-            No {activeTab} data available
-          </p>
-        </div>
+        <EmptyState
+          icon={TagIcon}
+          title={`No ${activeTab} data available`}
+          description={`Start adding ${activeTab} transactions to see your category breakdown.`}
+          compact
+        />
       ) : (
         <ResponsiveContainer width="100%" height={350}>
           <PieChart>

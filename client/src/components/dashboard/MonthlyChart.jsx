@@ -10,17 +10,12 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { format } from 'date-fns';
+import { ChartBarIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
-
-const SKELETON_PULSE = 'animate-pulse rounded bg-gray-200';
-
-const ChartSkeleton = () => (
-  <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <div className={`${SKELETON_PULSE} mb-6 h-5 w-48`} />
-    <div className={`${SKELETON_PULSE} h-72 w-full`} />
-  </div>
-);
+import { ChartSkeleton } from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
+import ErrorMessage from '../ui/ErrorMessage';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -64,7 +59,8 @@ const transformMonthlyData = (rawData) => {
 };
 
 const MonthlyChart = () => {
-  const { monthlyData, isLoading, fetchMonthlyBreakdown } = useTransactions();
+  const { monthlyData, isLoading, error, fetchMonthlyBreakdown } =
+    useTransactions();
 
   useEffect(() => {
     fetchMonthlyBreakdown();
@@ -77,6 +73,18 @@ const MonthlyChart = () => {
 
   if (isLoading) return <ChartSkeleton />;
 
+  if (error && !monthlyData?.length) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <ErrorMessage
+          message="Failed to load monthly chart."
+          onRetry={() => fetchMonthlyBreakdown()}
+          compact
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="mb-4 text-lg font-semibold text-gray-800">
@@ -84,9 +92,12 @@ const MonthlyChart = () => {
       </h3>
 
       {chartData.length === 0 ? (
-        <div className="flex h-72 items-center justify-center">
-          <p className="text-sm text-gray-400">No data available</p>
-        </div>
+        <EmptyState
+          icon={ChartBarIcon}
+          title="No monthly data yet"
+          description="Your income and expense trends will appear here once you add transactions."
+          compact
+        />
       ) : (
         <ResponsiveContainer width="100%" height={300}>
           <BarChart

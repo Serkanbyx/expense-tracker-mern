@@ -5,18 +5,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
-
-const SKELETON_PULSE = 'animate-pulse rounded bg-gray-200';
-
-const SkeletonCard = () => (
-  <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <div className="flex items-center gap-3">
-      <div className={`${SKELETON_PULSE} h-10 w-10`} />
-      <div className={`${SKELETON_PULSE} h-4 w-24`} />
-    </div>
-    <div className={`${SKELETON_PULSE} mt-4 h-8 w-32`} />
-  </div>
-);
+import { SummaryCardSkeleton } from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
+import ErrorMessage from '../ui/ErrorMessage';
 
 const CARD_CONFIG = [
   {
@@ -45,16 +36,41 @@ const CARD_CONFIG = [
   },
 ];
 
+const SKELETON_COUNT = 3;
+
 const SummaryCards = () => {
-  const { summary, isLoading } = useTransactions();
+  const { summary, isLoading, error, fetchSummary } = useTransactions();
 
   if (isLoading || !summary) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
-        {Array.from({ length: 3 }, (_, i) => (
-          <SkeletonCard key={i} />
+        {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+          <SummaryCardSkeleton key={i} />
         ))}
       </div>
+    );
+  }
+
+  if (error && !summary) {
+    return (
+      <ErrorMessage
+        message="Failed to load summary data."
+        onRetry={() => fetchSummary()}
+      />
+    );
+  }
+
+  if (
+    !summary.totalIncome &&
+    !summary.totalExpense &&
+    !summary.netBalance
+  ) {
+    return (
+      <EmptyState
+        icon={WalletIcon}
+        title="No financial data yet"
+        description="Add your first transaction to see your income, expenses, and balance."
+      />
     );
   }
 

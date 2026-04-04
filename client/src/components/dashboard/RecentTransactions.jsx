@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowRightIcon,
+  ClockIcon,
+} from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
-
-const SKELETON_PULSE = 'animate-pulse rounded bg-gray-200';
+import { ListRowSkeleton } from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
 
 const RECENT_COUNT = 5;
 
@@ -26,17 +29,6 @@ const getCategoryStyle = (category) =>
 const capitalize = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
-const SkeletonRow = () => (
-  <div className="flex items-center justify-between py-3">
-    <div className="flex items-center gap-3">
-      <div className={`${SKELETON_PULSE} h-4 w-20`} />
-      <div className={`${SKELETON_PULSE} h-5 w-16`} />
-      <div className={`${SKELETON_PULSE} h-4 w-32`} />
-    </div>
-    <div className={`${SKELETON_PULSE} h-5 w-20`} />
-  </div>
-);
-
 const RecentTransactions = () => {
   const { transactions, isLoading } = useTransactions();
 
@@ -45,10 +37,10 @@ const RecentTransactions = () => {
   if (isLoading) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className={`${SKELETON_PULSE} mb-4 h-6 w-48`} />
+        <div className="animate-pulse rounded bg-gray-200 mb-4 h-6 w-48" />
         <div className="divide-y divide-gray-100">
           {Array.from({ length: RECENT_COUNT }, (_, i) => (
-            <SkeletonRow key={i} />
+            <ListRowSkeleton key={i} />
           ))}
         </div>
       </div>
@@ -72,9 +64,12 @@ const RecentTransactions = () => {
       </div>
 
       {recentTransactions.length === 0 ? (
-        <div className="flex h-40 items-center justify-center">
-          <p className="text-sm text-gray-400">No transactions yet</p>
-        </div>
+        <EmptyState
+          icon={ClockIcon}
+          title="No transactions yet"
+          description="Your most recent transactions will appear here. Add your first one!"
+          compact
+        />
       ) : (
         <div className="divide-y divide-gray-100">
           {recentTransactions.map((transaction) => {

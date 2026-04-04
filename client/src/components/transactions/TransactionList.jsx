@@ -8,8 +8,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
-
-const SKELETON_PULSE = 'animate-pulse rounded bg-gray-200';
+import { TableRowSkeleton, MobileCardSkeleton } from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
+import ErrorMessage from '../ui/ErrorMessage';
 
 const CATEGORY_STYLES = {
   food: 'bg-orange-100 text-orange-700',
@@ -35,52 +36,6 @@ const getTypeStyle = (type) => TYPE_STYLES[type] ?? TYPE_STYLES.expense;
 
 const capitalize = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
-
-/* ── Skeleton Components ─────────────────────────────── */
-
-const SkeletonTableRow = () => (
-  <tr>
-    <td className="px-4 py-3">
-      <div className={`${SKELETON_PULSE} h-4 w-24`} />
-    </td>
-    <td className="px-4 py-3">
-      <div className={`${SKELETON_PULSE} h-5 w-16 rounded-full`} />
-    </td>
-    <td className="px-4 py-3">
-      <div className={`${SKELETON_PULSE} h-5 w-20 rounded-full`} />
-    </td>
-    <td className="px-4 py-3">
-      <div className={`${SKELETON_PULSE} h-4 w-36`} />
-    </td>
-    <td className="px-4 py-3 text-right">
-      <div className={`${SKELETON_PULSE} ml-auto h-4 w-24`} />
-    </td>
-    <td className="px-4 py-3 text-right">
-      <div className="flex justify-end gap-2">
-        <div className={`${SKELETON_PULSE} h-8 w-8 rounded-lg`} />
-        <div className={`${SKELETON_PULSE} h-8 w-8 rounded-lg`} />
-      </div>
-    </td>
-  </tr>
-);
-
-const SkeletonCard = () => (
-  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className={`${SKELETON_PULSE} h-4 w-24`} />
-      <div className={`${SKELETON_PULSE} h-5 w-20`} />
-    </div>
-    <div className="mt-3 flex gap-2">
-      <div className={`${SKELETON_PULSE} h-5 w-16 rounded-full`} />
-      <div className={`${SKELETON_PULSE} h-5 w-20 rounded-full`} />
-    </div>
-    <div className={`${SKELETON_PULSE} mt-3 h-4 w-full`} />
-    <div className="mt-3 flex justify-end gap-2">
-      <div className={`${SKELETON_PULSE} h-8 w-8 rounded-lg`} />
-      <div className={`${SKELETON_PULSE} h-8 w-8 rounded-lg`} />
-    </div>
-  </div>
-);
 
 const SKELETON_COUNT = 5;
 
@@ -134,22 +89,6 @@ const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }) =
   </div>
 );
 
-/* ── Empty State ─────────────────────────────────────── */
-
-const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 shadow-sm">
-    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-      <InboxIcon className="h-8 w-8 text-gray-400" />
-    </div>
-    <h3 className="mt-4 text-base font-semibold text-gray-800">
-      No transactions found
-    </h3>
-    <p className="mt-1 text-sm text-gray-400">
-      Try adjusting your filters or add a new transaction.
-    </p>
-  </div>
-);
-
 /* ── Action Buttons ──────────────────────────────────── */
 
 const ActionButtons = ({ onEdit, onDelete }) => (
@@ -190,21 +129,23 @@ const AmountDisplay = ({ type, amount }) => {
 
 /* ── Desktop Table ───────────────────────────────────── */
 
+const TABLE_HEADERS = ['Date', 'Type', 'Category', 'Description', 'Amount', 'Actions'];
+
 const TransactionTable = ({ transactions, onEdit, onDelete }) => (
   <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block">
     <table className="w-full text-left text-sm">
       <thead>
         <tr className="border-b border-gray-200 bg-gray-50">
-          <th className="px-4 py-3 font-medium text-gray-500">Date</th>
-          <th className="px-4 py-3 font-medium text-gray-500">Type</th>
-          <th className="px-4 py-3 font-medium text-gray-500">Category</th>
-          <th className="px-4 py-3 font-medium text-gray-500">Description</th>
-          <th className="px-4 py-3 text-right font-medium text-gray-500">
-            Amount
-          </th>
-          <th className="px-4 py-3 text-right font-medium text-gray-500">
-            Actions
-          </th>
+          {TABLE_HEADERS.map((header) => (
+            <th
+              key={header}
+              className={`px-4 py-3 font-medium text-gray-500 ${
+                header === 'Amount' || header === 'Actions' ? 'text-right' : ''
+              }`}
+            >
+              {header}
+            </th>
+          ))}
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
@@ -304,7 +245,8 @@ const TransactionCardList = ({ transactions, onEdit, onDelete }) => (
 /* ── Main Component ──────────────────────────────────── */
 
 const TransactionList = ({ onEdit }) => {
-  const { transactions, isLoading, removeTransaction } = useTransactions();
+  const { transactions, isLoading, error, removeTransaction, fetchTransactions, filters } =
+    useTransactions();
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -346,17 +288,21 @@ const TransactionList = ({ onEdit }) => {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-3 font-medium text-gray-500">Date</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Type</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Category</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Description</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-500">Amount</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-500">Actions</th>
+                {TABLE_HEADERS.map((header) => (
+                  <th
+                    key={header}
+                    className={`px-4 py-3 font-medium text-gray-500 ${
+                      header === 'Amount' || header === 'Actions' ? 'text-right' : ''
+                    }`}
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-                <SkeletonTableRow key={i} />
+                <TableRowSkeleton key={i} />
               ))}
             </tbody>
           </table>
@@ -365,16 +311,32 @@ const TransactionList = ({ onEdit }) => {
         {/* Mobile skeleton */}
         <div className="space-y-3 md:hidden">
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-            <SkeletonCard key={i} />
+            <MobileCardSkeleton key={i} />
           ))}
         </div>
       </>
     );
   }
 
+  /* Error State */
+  if (error && sortedTransactions.length === 0) {
+    return (
+      <ErrorMessage
+        message="Failed to load transactions."
+        onRetry={() => fetchTransactions(filters)}
+      />
+    );
+  }
+
   /* Empty State */
   if (sortedTransactions.length === 0) {
-    return <EmptyState />;
+    return (
+      <EmptyState
+        icon={InboxIcon}
+        title="No transactions found"
+        description="Try adjusting your filters or add a new transaction."
+      />
+    );
   }
 
   return (

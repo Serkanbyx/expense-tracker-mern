@@ -20,6 +20,7 @@ const TransactionContext = createContext(null);
 
 const ACTION_TYPES = {
   SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR',
   SET_TRANSACTIONS: 'SET_TRANSACTIONS',
   SET_SUMMARY: 'SET_SUMMARY',
   SET_MONTHLY_DATA: 'SET_MONTHLY_DATA',
@@ -42,6 +43,7 @@ const initialState = {
   monthlyData: [],
   categoryData: [],
   isLoading: false,
+  error: null,
   filters: initialFilters,
 };
 
@@ -49,6 +51,9 @@ const transactionReducer = (state, action) => {
   switch (action.type) {
     case ACTION_TYPES.SET_LOADING:
       return { ...state, isLoading: action.payload };
+
+    case ACTION_TYPES.SET_ERROR:
+      return { ...state, error: action.payload, isLoading: false };
 
     case ACTION_TYPES.SET_TRANSACTIONS:
       return { ...state, transactions: action.payload, isLoading: false };
@@ -97,13 +102,15 @@ const TransactionProvider = ({ children }) => {
 
   const fetchTransactions = useCallback(async (filters = {}) => {
     dispatch({ type: ACTION_TYPES.SET_LOADING, payload: true });
+    dispatch({ type: ACTION_TYPES.SET_ERROR, payload: null });
 
     try {
       const data = await getTransactions(filters);
       dispatch({ type: ACTION_TYPES.SET_TRANSACTIONS, payload: data.transactions });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch transactions');
-      dispatch({ type: ACTION_TYPES.SET_LOADING, payload: false });
+      const message = error.response?.data?.message || 'Failed to fetch transactions';
+      toast.error(message);
+      dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
   }, []);
 
@@ -112,7 +119,9 @@ const TransactionProvider = ({ children }) => {
       const data = await getSummary(filters);
       dispatch({ type: ACTION_TYPES.SET_SUMMARY, payload: data });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch summary');
+      const message = error.response?.data?.message || 'Failed to fetch summary';
+      toast.error(message);
+      dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
   }, []);
 
@@ -121,7 +130,9 @@ const TransactionProvider = ({ children }) => {
       const data = await getMonthlyBreakdown(filters);
       dispatch({ type: ACTION_TYPES.SET_MONTHLY_DATA, payload: data.breakdown });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch monthly data');
+      const message = error.response?.data?.message || 'Failed to fetch monthly data';
+      toast.error(message);
+      dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
   }, []);
 
@@ -130,7 +141,9 @@ const TransactionProvider = ({ children }) => {
       const data = await getCategoryBreakdown(filters);
       dispatch({ type: ACTION_TYPES.SET_CATEGORY_DATA, payload: data.breakdown });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch category data');
+      const message = error.response?.data?.message || 'Failed to fetch category data';
+      toast.error(message);
+      dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
   }, []);
 
