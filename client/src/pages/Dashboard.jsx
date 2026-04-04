@@ -1,10 +1,32 @@
+import { useEffect } from 'react';
+import { useTransactions } from '../context/TransactionContext';
 import SummaryCards from '../components/dashboard/SummaryCards';
+import MonthlyChart from '../components/dashboard/MonthlyChart';
+import CategoryChart from '../components/dashboard/CategoryChart';
+import RecentTransactions from '../components/dashboard/RecentTransactions';
 
 const Dashboard = () => {
+  const { fetchSummary, fetchMonthlyBreakdown, fetchCategoryBreakdown } =
+    useTransactions();
+
+  useEffect(() => {
+    fetchSummary();
+    fetchMonthlyBreakdown();
+    fetchCategoryBreakdown();
+  }, [fetchSummary, fetchMonthlyBreakdown, fetchCategoryBreakdown]);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+
       <SummaryCards />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <MonthlyChart />
+        <CategoryChart />
+      </div>
+
+      <RecentTransactions />
     </div>
   );
 };
