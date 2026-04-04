@@ -1,6 +1,13 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
+import {
+  validateAmount,
+  validateCategory,
+  validateDate,
+  sanitizeFormData,
+  VALIDATION_LIMITS,
+} from '../../utils/validation';
 
 const INCOME_CATEGORIES = ['salary', 'other'];
 
@@ -40,6 +47,21 @@ const getInitialFormState = (transaction) => {
   };
 };
 
+const inputBaseClass =
+  'w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:outline-none focus:ring-1 disabled:opacity-50';
+
+const getInputClass = (hasError) =>
+  hasError
+    ? `${inputBaseClass} border-red-400 focus:border-red-500 focus:ring-red-500`
+    : `${inputBaseClass} border-gray-300 focus:border-indigo-500 focus:ring-indigo-500`;
+
+const FieldError = ({ message }) =>
+  message ? (
+    <p className="mt-1 text-xs text-red-600" role="alert">
+      {message}
+    </p>
+  ) : null;
+
 /* ── Type Toggle ──────────────────────────────────────── */
 
 const TypeToggle = ({ activeType, onChange, disabled }) => (
@@ -78,6 +100,8 @@ const TransactionForm = ({ transaction = null, onClose }) => {
     getInitialFormState(transaction),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   const categories = useMemo(
     () =>
@@ -85,16 +109,73 @@ const TransactionForm = ({ transaction = null, onClose }) => {
     [formData.type],
   );
 
-  /* Reset category when switching type if current one isn't valid */
   useEffect(() => {
     if (!categories.includes(formData.category)) {
       setFormData((prev) => ({ ...prev, category: '' }));
     }
   }, [formData.type, categories, formData.category]);
 
-  const handleChange = useCallback((field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const validateField = useCallback(
+    (field, value) => {
+      switch (field) {
+        case 'category':
+          return validateCategory(value);
+        case 'amount':
+          return validateAmount(value);
+        case 'date':
+          return validateDate(value);
+        default:
+          return null;
+      }
+    },
+    [],
+  );
+
+  const validateAllFields = useCallback(() => {
+    const fieldErrors = {
+      category: validateCategory(formData.category),
+      amount: validateAmount(formData.amount),
+      date: validateDate(formData.date),
+    };
+
+    const activeErrors = Object.fromEntries(
+      Object.entries(fieldErrors).filter(([, msg]) => msg !== null),
+    );
+
+    setErrors(activeErrors);
+    setTouched({ category: true, amount: true, date: true });
+
+    return Object.keys(activeErrors).length === 0;
+  }, [formData]);
+
+  const handleChange = useCallback(
+    (field, value) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+
+      if (touched[field]) {
+        const error = validateField(field, value);
+        setErrors((prev) => {
+          if (error) return { ...prev, [field]: error };
+          const { [field]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    },
+    [touched, validateField],
+  );
+
+  const handleBlur = useCallback(
+    (field) => {
+      setTouched((prev) => ({ ...prev, [field]: true }));
+      const error = validateField(field, formData[field]);
+      setErrors((prev) => {
+        if (error) return { ...prev, [field]: error };
+        const { [field]: _, ...rest } = prev;
+        return rest;
+      });
+    },
+    [formData, validateField],
+  );
 
   const handleTypeChange = useCallback((type) => {
     setFormData((prev) => ({ ...prev, type }));
@@ -103,14 +184,19 @@ const TransactionForm = ({ transaction = null, onClose }) => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
+
+      if (!validateAllFields()) return;
+
       setIsSubmitting(true);
 
+      const sanitized = sanitizeFormData(formData);
+
       const payload = {
-        type: formData.type,
-        category: formData.category,
-        amount: parseFloat(formData.amount),
-        date: formData.date,
-        description: formData.description.trim() || undefined,
+        type: sanitized.type,
+        category: sanitized.category,
+        amount: parseFloat(sanitized.amount),
+        date: sanitized.date,
+        description: sanitized.description || undefined,
       };
 
       try {
@@ -124,14 +210,15 @@ const TransactionForm = ({ transaction = null, onClose }) => {
         setIsSubmitting(false);
       }
     },
-    [formData, isEditMode, transaction, addTransaction, editTransaction, onClose],
+    [formData, validateAllFields, isEditMode, transaction, addTransaction, editTransaction, onClose],
   );
 
   const isValid =
     formData.type &&
     formData.category &&
     parseFloat(formData.amount) >= 0.01 &&
-    formData.date;
+    formData.date &&
+    Object.keys(errors).length === 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -160,7 +247,7 @@ const TransactionForm = ({ transaction = null, onClose }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4">
           {/* Type Toggle */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -183,11 +270,11 @@ const TransactionForm = ({ transaction = null, onClose }) => {
             </label>
             <select
               id="category"
-              required
               value={formData.category}
               onChange={(e) => handleChange('category', e.target.value)}
+              onBlur={() => handleBlur('category')}
               disabled={isSubmitting}
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+              className={getInputClass(touched.category && errors.category)}
             >
               <option value="" disabled>
                 Select a category
@@ -198,6 +285,7 @@ const TransactionForm = ({ transaction = null, onClose }) => {
                 </option>
               ))}
             </select>
+            <FieldError message={touched.category && errors.category} />
           </div>
 
           {/* Amount */}
@@ -215,16 +303,17 @@ const TransactionForm = ({ transaction = null, onClose }) => {
               <input
                 id="amount"
                 type="number"
-                required
                 min="0.01"
                 step="0.01"
                 placeholder="0.00"
                 value={formData.amount}
                 onChange={(e) => handleChange('amount', e.target.value)}
+                onBlur={() => handleBlur('amount')}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2.5 pl-7 pr-3 text-sm text-gray-700 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                className={`${getInputClass(touched.amount && errors.amount)} pl-7 pr-3`}
               />
             </div>
+            <FieldError message={touched.amount && errors.amount} />
           </div>
 
           {/* Date */}
@@ -238,12 +327,13 @@ const TransactionForm = ({ transaction = null, onClose }) => {
             <input
               id="date"
               type="date"
-              required
               value={formData.date}
               onChange={(e) => handleChange('date', e.target.value)}
+              onBlur={() => handleBlur('date')}
               disabled={isSubmitting}
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+              className={getInputClass(touched.date && errors.date)}
             />
+            <FieldError message={touched.date && errors.date} />
           </div>
 
           {/* Description */}
@@ -258,13 +348,16 @@ const TransactionForm = ({ transaction = null, onClose }) => {
             <input
               id="description"
               type="text"
-              maxLength={200}
+              maxLength={VALIDATION_LIMITS.DESCRIPTION_MAX}
               placeholder="e.g. Monthly groceries"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
               disabled={isSubmitting}
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+              className={getInputClass(false)}
             />
+            <p className="mt-1 text-xs text-gray-400">
+              {formData.description.length}/{VALIDATION_LIMITS.DESCRIPTION_MAX}
+            </p>
           </div>
 
           {/* Action Buttons */}

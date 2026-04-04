@@ -31,6 +31,18 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
 
+    if (error.response?.data) {
+      const { data } = error.response;
+
+      if (typeof data.stack === 'string') {
+        delete data.stack;
+      }
+
+      if (typeof data === 'object' && !data.message && !data.errors) {
+        data.message = 'Something went wrong. Please try again.';
+      }
+    }
+
     return Promise.reject(error);
   },
 );

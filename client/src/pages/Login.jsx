@@ -1,11 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import {
+  validateEmail,
+  validatePassword,
+  sanitizeFormData,
+  extractErrorMessage,
+} from '../utils/validation';
+
+const inputBaseClass =
+  'w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition';
+
+const getInputClass = (hasError) =>
+  hasError
+    ? `${inputBaseClass} border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20`
+    : `${inputBaseClass} border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20`;
+
+const FieldError = ({ message }) =>
+  message ? (
+    <p className="mt-1 text-xs text-red-600" role="alert">
+      {message}
+    </p>
+  ) : null;
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -15,26 +38,83 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const validateField = useCallback((field, value) => {
+    switch (field) {
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value, true);
+      default:
+        return null;
+    }
+  }, []);
+
+  const validateAllFields = useCallback(() => {
+    const fieldErrors = {
+      email: validateEmail(formData.email),
+      password: validatePassword(formData.password, true),
+    };
+
+    const activeErrors = Object.fromEntries(
+      Object.entries(fieldErrors).filter(([, msg]) => msg !== null),
+    );
+
+    setErrors(activeErrors);
+    setTouched({ email: true, password: true });
+
+    return Object.keys(activeErrors).length === 0;
+  }, [formData]);
+
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+
+      if (touched[name]) {
+        const error = validateField(name, value);
+        setErrors((prev) => {
+          if (error) return { ...prev, [name]: error };
+          const { [name]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    },
+    [touched, validateField],
+  );
+
+  const handleBlur = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setTouched((prev) => ({ ...prev, [name]: true }));
+      const error = validateField(name, value);
+      setErrors((prev) => {
+        if (error) return { ...prev, [name]: error };
+        const { [name]: _, ...rest } = prev;
+        return rest;
+      });
+    },
+    [validateField],
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateAllFields()) return;
+
     setIsSubmitting(true);
+    const sanitized = sanitizeFormData(formData);
 
     try {
-      await login(formData.email, formData.password);
+      await login(sanitized.email, sanitized.password);
       navigate('/dashboard', { replace: true });
     } catch (error) {
-      const message =
-        error.response?.data?.message || 'Login failed. Please try again.';
-      toast.error(message);
+      toast.error(extractErrorMessage(error, 'Login failed. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const isValid = Object.keys(errors).length === 0;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -46,7 +126,7 @@ const Login = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <div>
             <label
               htmlFor="email"
@@ -58,13 +138,14 @@ const Login = () => {
               id="email"
               name="email"
               type="email"
-              required
               autoComplete="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition"
+              className={getInputClass(touched.email && errors.email)}
             />
+            <FieldError message={touched.email && errors.email} />
           </div>
 
           <div>
@@ -78,18 +159,19 @@ const Login = () => {
               id="password"
               name="password"
               type="password"
-              required
               autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
+              onBlur={handleBlur}
               placeholder="••••••••"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition"
+              className={getInputClass(touched.password && errors.password)}
             />
+            <FieldError message={touched.password && errors.password} />
           </div>
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={!isValid || isSubmitting}
             className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
             {isSubmitting && (

@@ -15,6 +15,7 @@ import {
   getMonthlyBreakdown,
   getCategoryBreakdown,
 } from '../services/transactionService';
+import { extractErrorMessage } from '../utils/validation';
 
 const TransactionContext = createContext(null);
 
@@ -108,7 +109,7 @@ const TransactionProvider = ({ children }) => {
       const data = await getTransactions(filters);
       dispatch({ type: ACTION_TYPES.SET_TRANSACTIONS, payload: data.transactions });
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to fetch transactions';
+      const message = extractErrorMessage(error, 'Failed to fetch transactions');
       toast.error(message);
       dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
@@ -119,7 +120,7 @@ const TransactionProvider = ({ children }) => {
       const data = await getSummary(filters);
       dispatch({ type: ACTION_TYPES.SET_SUMMARY, payload: data });
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to fetch summary';
+      const message = extractErrorMessage(error, 'Failed to fetch summary');
       toast.error(message);
       dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
@@ -130,7 +131,7 @@ const TransactionProvider = ({ children }) => {
       const data = await getMonthlyBreakdown(filters);
       dispatch({ type: ACTION_TYPES.SET_MONTHLY_DATA, payload: data.breakdown });
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to fetch monthly data';
+      const message = extractErrorMessage(error, 'Failed to fetch monthly data');
       toast.error(message);
       dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
@@ -141,7 +142,7 @@ const TransactionProvider = ({ children }) => {
       const data = await getCategoryBreakdown(filters);
       dispatch({ type: ACTION_TYPES.SET_CATEGORY_DATA, payload: data.breakdown });
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to fetch category data';
+      const message = extractErrorMessage(error, 'Failed to fetch category data');
       toast.error(message);
       dispatch({ type: ACTION_TYPES.SET_ERROR, payload: message });
     }
@@ -154,7 +155,7 @@ const TransactionProvider = ({ children }) => {
       toast.success('Transaction added successfully');
       return data.transaction;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add transaction');
+      toast.error(extractErrorMessage(error, 'Failed to add transaction'));
       throw error;
     }
   }, []);
@@ -166,7 +167,7 @@ const TransactionProvider = ({ children }) => {
       toast.success('Transaction updated successfully');
       return data.transaction;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update transaction');
+      toast.error(extractErrorMessage(error, 'Failed to update transaction'));
       throw error;
     }
   }, []);
@@ -177,7 +178,7 @@ const TransactionProvider = ({ children }) => {
       dispatch({ type: ACTION_TYPES.DELETE_TRANSACTION, payload: id });
       toast.success('Transaction deleted successfully');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete transaction');
+      toast.error(extractErrorMessage(error, 'Failed to delete transaction'));
       throw error;
     }
   }, []);
