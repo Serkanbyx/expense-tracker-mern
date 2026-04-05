@@ -28,16 +28,6 @@ A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Ex
 
 ---
 
-## Screenshots
-
-| Dashboard | Transactions |
-|:---------:|:------------:|
-| ![Dashboard](screenshots/dashboard.png) | ![Transactions](screenshots/transactions.png) |
-
-> Add your screenshots to a `screenshots/` folder at the project root.
-
----
-
 ## Technologies
 
 ### Frontend
