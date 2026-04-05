@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useReducer,
+  useState,
 } from 'react';
 import type { ReactNode } from 'react';
 import toast from 'react-hot-toast';
@@ -110,6 +111,9 @@ const transactionReducer = (state: TransactionState, action: TransactionAction):
 
 const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(transactionReducer, initialState);
+  const [dataVersion, setDataVersion] = useState(0);
+
+  const invalidateData = useCallback(() => setDataVersion((v) => v + 1), []);
 
   const fetchTransactions = useCallback(async (filters: TransactionFilters = {}): Promise<void> => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -162,46 +166,52 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     try {
       const data = await createTransaction(transactionData);
       dispatch({ type: 'ADD_TRANSACTION', payload: data.transaction });
+      invalidateData();
       toast.success('Transaction added successfully');
       return data.transaction;
     } catch (error) {
       toast.error(extractErrorMessage(error, 'Failed to add transaction'));
       throw error;
     }
-  }, []);
+  }, [invalidateData]);
 
   const editTransaction = useCallback(async (id: string, transactionData: Partial<TransactionInput>): Promise<Transaction> => {
     try {
       const data = await updateTransaction(id, transactionData);
       dispatch({ type: 'UPDATE_TRANSACTION', payload: data.transaction });
+      invalidateData();
       toast.success('Transaction updated successfully');
       return data.transaction;
     } catch (error) {
       toast.error(extractErrorMessage(error, 'Failed to update transaction'));
       throw error;
     }
-  }, []);
+  }, [invalidateData]);
 
   const removeTransaction = useCallback(async (id: string): Promise<void> => {
     try {
       await deleteTransaction(id);
       dispatch({ type: 'DELETE_TRANSACTION', payload: id });
+      invalidateData();
       toast.success('Transaction deleted successfully');
     } catch (error) {
       toast.error(extractErrorMessage(error, 'Failed to delete transaction'));
       throw error;
     }
-  }, []);
+  }, [invalidateData]);
 
   const setFilters = useCallback((newFilters: Partial<TransactionFilters>): void => {
     dispatch({ type: 'SET_FILTERS', payload: newFilters });
   }, []);
 
-  /* Re-fetch transactions and summary when filters change */
   useEffect(() => {
     fetchTransactions(state.filters);
+  }, [state.filters, fetchTransactions]);
+
+  /* Re-fetch summary when filters change OR after any CRUD operation */
+  useEffect(() => {
     fetchSummary(state.filters);
-  }, [state.filters, fetchTransactions, fetchSummary]);
+  }, [state.filters, dataVersion, fetchSummary]);
 
   return (
     <TransactionContext.Provider
