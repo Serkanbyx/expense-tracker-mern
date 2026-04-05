@@ -81,23 +81,33 @@ const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     dispatch({ type: ACTION_TYPES.SET_LOADING, payload: true });
 
-    const { data } = await api.post('/auth/login', { email, password });
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
 
-    localStorage.setItem('token', data.token);
-    dispatch({ type: ACTION_TYPES.LOGIN_SUCCESS, payload: data });
+      localStorage.setItem('token', data.token);
+      dispatch({ type: ACTION_TYPES.LOGIN_SUCCESS, payload: data });
+    } catch (error) {
+      dispatch({ type: ACTION_TYPES.SET_LOADING, payload: false });
+      throw error;
+    }
   };
 
   const register = async (name, email, password) => {
     dispatch({ type: ACTION_TYPES.SET_LOADING, payload: true });
 
-    const { data } = await api.post('/auth/register', {
-      name,
-      email,
-      password,
-    });
+    try {
+      const { data } = await api.post('/auth/register', {
+        name,
+        email,
+        password,
+      });
 
-    localStorage.setItem('token', data.token);
-    dispatch({ type: ACTION_TYPES.LOGIN_SUCCESS, payload: data });
+      localStorage.setItem('token', data.token);
+      dispatch({ type: ACTION_TYPES.LOGIN_SUCCESS, payload: data });
+    } catch (error) {
+      dispatch({ type: ACTION_TYPES.SET_LOADING, payload: false });
+      throw error;
+    }
   };
 
   const logout = () => {

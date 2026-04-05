@@ -6,14 +6,12 @@ import CategoryChart from '../components/dashboard/CategoryChart';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
 
 const Dashboard = () => {
-  const { fetchSummary, fetchMonthlyBreakdown, fetchCategoryBreakdown } =
-    useTransactions();
+  const { fetchMonthlyBreakdown, fetchCategoryBreakdown } = useTransactions();
 
   useEffect(() => {
-    fetchSummary();
     fetchMonthlyBreakdown();
     fetchCategoryBreakdown();
-  }, [fetchSummary, fetchMonthlyBreakdown, fetchCategoryBreakdown]);
+  }, [fetchMonthlyBreakdown, fetchCategoryBreakdown]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

@@ -1,6 +1,6 @@
 import api from './api';
 
-const TRANSACTIONS_URL = '/api/transactions';
+const TRANSACTIONS_URL = '/transactions';
 
 /**
  * Strips undefined/null values so Axios won't send empty query params.

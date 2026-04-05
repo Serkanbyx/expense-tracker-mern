@@ -1,19 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useTransactions } from '../context/TransactionContext';
 import FilterBar from '../components/transactions/FilterBar';
 import TransactionList from '../components/transactions/TransactionList';
 import TransactionForm from '../components/transactions/TransactionForm';
 
 const Transactions = () => {
-  const { fetchTransactions, filters } = useTransactions();
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
-
-  useEffect(() => {
-    fetchTransactions(filters);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAdd = useCallback(() => {
     setEditingTransaction(null);

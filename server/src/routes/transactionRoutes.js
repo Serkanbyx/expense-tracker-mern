@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const {
   getTransactions,
+  getTransactionById,
   getSummary,
   getMonthlyBreakdown,
   getCategoryBreakdown,
@@ -23,6 +24,7 @@ router.get("/", getTransactions);
 router.get("/summary", getSummary);
 router.get("/monthly", getMonthlyBreakdown);
 router.get("/categories", getCategoryBreakdown);
+router.get("/:id", getTransactionById);
 router.post("/", createTransactionRules, validate, createTransaction);
 router.put("/:id", updateTransactionRules, validate, updateTransaction);
 router.delete("/:id", deleteTransaction);
