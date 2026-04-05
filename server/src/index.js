@@ -1,16 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const express = require('express');
 const mongoose = require('mongoose');
-const helmet = require('helmet');
-const cors = require('cors');
-const mongoSanitize = require('express-mongo-sanitize');
-const hpp = require('hpp');
-const { rateLimit } = require('express-rate-limit');
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./config/swagger');
-const getWelcomePage = require('./config/welcomePage');
 
 // --- Validate required environment variables ---
 const requiredEnvVars = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'JWT_EXPIRES_IN', 'CLIENT_URL'];
@@ -21,73 +12,9 @@ if (missingVars.length > 0) {
   process.exit(1);
 }
 
-const { PORT, MONGO_URI, CLIENT_URL, NODE_ENV } = process.env;
+const app = require('./app');
 
-const app = express();
-
-// --- Security-hardened middleware stack (order matters) ---
-
-// 1. Secure HTTP headers
-app.use(helmet());
-
-// 2. CORS — restrict to the exact frontend origin
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
-
-// 3. Parse JSON body with size limit
-app.use(express.json({ limit: '10kb' }));
-
-// 4. Parse URL-encoded body with size limit
-app.use(express.urlencoded({ extended: false, limit: '10kb' }));
-
-// 5. Prevent NoSQL injection (Express 5: req.query is read-only, sanitize body only)
-app.use((req, _res, next) => {
-  if (req.body) {
-    req.body = mongoSanitize.sanitize(req.body);
-  }
-  next();
-});
-
-// 6. Prevent HTTP Parameter Pollution
-app.use(hpp());
-
-// --- Rate limiters ---
-
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { message: 'Too many requests, please try again later' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { message: 'Too many requests, please try again later' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.use(globalLimiter);
-app.use('/api/auth', authLimiter);
-
-// --- Welcome page & Swagger docs ---
-app.get('/', (_req, res) => {
-  res.type('html').send(getWelcomePage());
-});
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Expense Tracker API Docs',
-}));
-
-// --- Routes ---
-const routes = require('./routes');
-app.use('/api', routes);
-
-// --- Error handling (must be after all route mounts) ---
-const { notFound, errorHandler } = require('./middleware/errorHandler');
-app.use(notFound);
-app.use(errorHandler);
+const { PORT, MONGO_URI, NODE_ENV } = process.env;
 
 // --- MongoDB connection & server start ---
 mongoose.set('debug', NODE_ENV !== 'production');
