@@ -11,6 +11,7 @@ import {
 import capitalize from '../../utils/capitalize';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/transaction';
 import { getInputClass, FieldError } from '../ui/FormField';
+import useModalA11y from '../../hooks/useModalA11y';
 import type { Transaction, TransactionInput, Category } from '@/types';
 
 /* ── Types ───────────────────────────────────────────── */
@@ -90,6 +91,7 @@ const TypeToggle = ({ activeType, onChange, disabled }: TypeToggleProps) => (
 
 const TransactionForm = ({ transaction = null, onClose }: TransactionFormProps) => {
   const { addTransaction, editTransaction } = useTransactions();
+  const modalRef = useModalA11y(onClose);
   const isEditMode = Boolean(transaction);
 
   const [formData, setFormData] = useState<FormData>(() =>
@@ -217,7 +219,12 @@ const TransactionForm = ({ transaction = null, onClose }: TransactionFormProps) 
     Object.keys(errors).length === 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="transaction-form-title"
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 transition-opacity"
@@ -226,10 +233,13 @@ const TransactionForm = ({ transaction = null, onClose }: TransactionFormProps) 
       />
 
       {/* Modal — full-screen on mobile, centered card on sm+ */}
-      <div className="relative flex max-h-full w-full flex-col overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:max-w-md sm:rounded-xl">
+      <div
+        ref={modalRef}
+        className="relative flex max-h-full w-full flex-col overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:max-w-md sm:rounded-xl"
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 id="transaction-form-title" className="text-lg font-semibold text-gray-900">
             {isEditMode ? 'Edit Transaction' : 'New Transaction'}
           </h2>
           <button

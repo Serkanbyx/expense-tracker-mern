@@ -13,6 +13,7 @@ import { getCategoryStyle, getTypeStyle } from '../../constants/transaction';
 import { TableRowSkeleton, MobileCardSkeleton } from '../ui/Skeleton';
 import EmptyState from '../ui/EmptyState';
 import ErrorMessage from '../ui/ErrorMessage';
+import useModalA11y from '../../hooks/useModalA11y';
 import type { Transaction } from '@/types';
 
 const SKELETON_COUNT = 5;
@@ -26,53 +27,62 @@ interface DeleteConfirmDialogProps {
   isDeleting: boolean;
 }
 
-const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }: DeleteConfirmDialogProps) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div
-      className="fixed inset-0 bg-black/50 transition-opacity"
-      onClick={onCancel}
-      aria-hidden="true"
-    />
+const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }: DeleteConfirmDialogProps) => {
+  const modalRef = useModalA11y(onCancel);
 
-    <div className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-      <div className="flex flex-col items-center text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-dialog-title"
+    >
+      <div
+        className="fixed inset-0 bg-black/50 transition-opacity"
+        onClick={onCancel}
+        aria-hidden="true"
+      />
+
+      <div ref={modalRef} className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+          </div>
+
+          <h3 id="delete-dialog-title" className="mt-4 text-lg font-semibold text-gray-900">
+            Delete Transaction
+          </h3>
+          <p className="mt-2 text-sm text-gray-500">
+            Are you sure you want to delete{' '}
+            <span className="font-medium text-gray-700">
+              {transaction.description || 'this transaction'}
+            </span>
+            ? This action cannot be undone.
+          </p>
         </div>
 
-        <h3 className="mt-4 text-lg font-semibold text-gray-900">
-          Delete Transaction
-        </h3>
-        <p className="mt-2 text-sm text-gray-500">
-          Are you sure you want to delete{' '}
-          <span className="font-medium text-gray-700">
-            {transaction.description || 'this transaction'}
-          </span>
-          ? This action cannot be undone.
-        </p>
-      </div>
-
-      <div className="mt-6 flex gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isDeleting}
-          className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={isDeleting}
-          className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
-        >
-          {isDeleting ? 'Deleting…' : 'Delete'}
-        </button>
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          >
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* ── Action Buttons ──────────────────────────────────── */
 
