@@ -9,21 +9,8 @@ import {
   sanitizeFormData,
   extractErrorMessage,
 } from '../utils/validation';
-
-const inputBaseClass =
-  'w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition';
-
-const getInputClass = (hasError?: string | false): string =>
-  hasError
-    ? `${inputBaseClass} border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20`
-    : `${inputBaseClass} border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20`;
-
-const FieldError = ({ message }: { message?: string | false }) =>
-  message ? (
-    <p className="mt-1 text-xs text-red-600" role="alert">
-      {message}
-    </p>
-  ) : null;
+import { getInputClass, FieldError } from '../components/ui/FormField';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Register = () => {
   const [formData, setFormData] = useState<{ name: string; email: string; password: string }>({
@@ -220,28 +207,7 @@ const Register = () => {
             disabled={!isValid || isSubmitting}
             className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
-            {isSubmitting && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            )}
+            {isSubmitting && <LoadingSpinner />}
             {isSubmitting ? 'Creating account…' : 'Create Account'}
           </button>
         </form>

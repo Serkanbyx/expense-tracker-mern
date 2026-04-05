@@ -1,22 +1,8 @@
 import { useCallback } from 'react';
 import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
-import type { Category } from '@/types';
-
-const CATEGORIES: Category[] = [
-  'food',
-  'salary',
-  'transport',
-  'entertainment',
-  'health',
-  'education',
-  'shopping',
-  'bills',
-  'other',
-];
-
-const capitalize = (str: string): string =>
-  str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+import capitalize from '../../utils/capitalize';
+import { CATEGORIES } from '../../constants/transaction';
 
 const getCurrentMonth = (): string => {
   const now = new Date();

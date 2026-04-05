@@ -6,28 +6,12 @@ import {
 } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
 import formatCurrency from '../../utils/formatCurrency';
+import capitalize from '../../utils/capitalize';
+import { getCategoryStyle } from '../../constants/transaction';
 import { ListRowSkeleton } from '../ui/Skeleton';
 import EmptyState from '../ui/EmptyState';
 
 const RECENT_COUNT = 5;
-
-const CATEGORY_STYLES: Record<string, string> = {
-  food: 'bg-orange-100 text-orange-700',
-  salary: 'bg-emerald-100 text-emerald-700',
-  transport: 'bg-blue-100 text-blue-700',
-  entertainment: 'bg-purple-100 text-purple-700',
-  health: 'bg-rose-100 text-rose-700',
-  education: 'bg-cyan-100 text-cyan-700',
-  shopping: 'bg-pink-100 text-pink-700',
-  bills: 'bg-amber-100 text-amber-700',
-  other: 'bg-gray-100 text-gray-700',
-};
-
-const getCategoryStyle = (category: string): string =>
-  CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other;
-
-const capitalize = (str: string): string =>
-  str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
 const RecentTransactions = () => {
   const { transactions, isLoading } = useTransactions();

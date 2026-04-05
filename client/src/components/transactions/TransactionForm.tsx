@@ -8,7 +8,10 @@ import {
   sanitizeFormData,
   VALIDATION_LIMITS,
 } from '../../utils/validation';
-import type { Transaction, TransactionInput } from '@/types';
+import capitalize from '../../utils/capitalize';
+import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/transaction';
+import { getInputClass, FieldError } from '../ui/FormField';
+import type { Transaction, TransactionInput, Category } from '@/types';
 
 /* ── Types ───────────────────────────────────────────── */
 
@@ -31,23 +34,7 @@ interface FormData {
   description: string;
 }
 
-/* ── Constants ───────────────────────────────────────── */
-
-const INCOME_CATEGORIES = ['salary', 'other'];
-
-const EXPENSE_CATEGORIES = [
-  'food',
-  'transport',
-  'entertainment',
-  'health',
-  'education',
-  'shopping',
-  'bills',
-  'other',
-];
-
-const capitalize = (str: string): string =>
-  str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+/* ── Helpers ─────────────────────────────────────────── */
 
 const getTodayString = (): string => new Date().toISOString().split('T')[0];
 
@@ -70,21 +57,6 @@ const getInitialFormState = (transaction: Transaction | null): FormData => {
     description: '',
   };
 };
-
-const inputBaseClass =
-  'w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:outline-none focus:ring-1 disabled:opacity-50';
-
-const getInputClass = (hasError: string | false | undefined): string =>
-  hasError
-    ? `${inputBaseClass} border-red-400 focus:border-red-500 focus:ring-red-500`
-    : `${inputBaseClass} border-gray-300 focus:border-indigo-500 focus:ring-indigo-500`;
-
-const FieldError = ({ message }: { message?: string | false }) =>
-  message ? (
-    <p className="mt-1 text-xs text-red-600" role="alert">
-      {message}
-    </p>
-  ) : null;
 
 /* ── Type Toggle ──────────────────────────────────────── */
 
@@ -134,7 +106,7 @@ const TransactionForm = ({ transaction = null, onClose }: TransactionFormProps) 
   );
 
   useEffect(() => {
-    if (!categories.includes(formData.category)) {
+    if (!categories.includes(formData.category as Category)) {
       setFormData((prev) => ({ ...prev, category: '' }));
     }
   }, [formData.type, categories, formData.category]);
