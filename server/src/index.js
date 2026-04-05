@@ -36,8 +36,13 @@ app.use(express.json({ limit: '10kb' }));
 // 4. Parse URL-encoded body with size limit
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
-// 5. Prevent NoSQL injection
-app.use(mongoSanitize());
+// 5. Prevent NoSQL injection (Express 5: req.query is read-only, sanitize body only)
+app.use((req, _res, next) => {
+  if (req.body) {
+    req.body = mongoSanitize.sanitize(req.body);
+  }
+  next();
+});
 
 // 6. Prevent HTTP Parameter Pollution
 app.use(hpp());
