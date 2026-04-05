@@ -13,8 +13,24 @@ const Footer = () => (
           </span>
         </div>
         <p className="text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} ExpenseTracker. Built with React
-          &amp; Node.js
+          Created by{' '}
+          <a
+            href="https://serkanbayraktar.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-indigo-600 transition hover:text-indigo-500"
+          >
+            Serkanby
+          </a>
+          {' | '}
+          <a
+            href="https://github.com/Serkanbyx"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-indigo-600 transition hover:text-indigo-500"
+          >
+            Github
+          </a>
         </p>
       </div>
     </div>
