@@ -1,6 +1,6 @@
 # 💰 Expense Tracker MERN
 
-A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Express, React, Node.js). Features JWT authentication, interactive Recharts dashboards with bar and pie charts, advanced transaction filtering, and a security-hardened backend with Helmet, rate limiting, and input sanitization.
+A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Express, React, Node.js). Features JWT authentication, interactive Recharts dashboards with bar and pie charts, advanced transaction filtering, server-side pagination, accessible modals, backend integration tests, and a security-hardened backend with Helmet, rate limiting, and input sanitization.
 
 [![Created by Serkanby](https://img.shields.io/badge/Created%20by-Serkanby-blue?style=flat-square)](https://serkanbayraktar.com/)
 [![GitHub](https://img.shields.io/badge/GitHub-Serkanbyx-181717?style=flat-square&logo=github)](https://github.com/Serkanbyx)
@@ -11,13 +11,18 @@ A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Ex
 
 - **JWT Authentication** — Secure register, login, and session management with token-based auth and automatic 401 redirect
 - **Transaction CRUD** — Create, read, update, and delete income and expense transactions with ownership isolation
-- **Interactive Dashboard** — Summary cards showing income, expense, and net balance with real-time updates
+- **Interactive Dashboard** — Summary cards showing income, expense, and net balance with real-time updates after CRUD operations
 - **Data Visualization** — Monthly income vs. expense bar charts and category breakdown pie charts powered by Recharts
 - **Advanced Filtering** — Filter transactions by month, category, and type (income/expense) with instant results
-- **Pagination** — Server-side pagination with configurable limits (up to 100 per page)
-- **Responsive Design** — Mobile-first UI with collapsible sidebar, adaptive layouts, and touch-friendly targets
+- **Pagination** — Server-side pagination with frontend navigation and configurable limits (up to 100 per page)
+- **Accessible Modals** — Focus trap, Escape key closure, ARIA attributes (`role="dialog"`, `aria-modal`), and body scroll locking
+- **Responsive Design** — Mobile-first UI with collapsible sidebar, adaptive layouts, and touch-friendly targets (44px targets)
+- **TypeScript** — Full frontend codebase in strict-mode TypeScript with shared type definitions
+- **Single Source of Truth** — Categories and transaction types served from backend `/api/config` endpoint, eliminating frontend-backend duplication
 - **Security Hardened** — Helmet, CORS whitelist, rate limiting, NoSQL injection prevention, HPP protection, and input sanitization
 - **Form Validation** — Client-side and server-side validation with user-friendly error messages via express-validator
+- **Backend Testing** — 32 integration tests covering auth and transaction CRUD with Jest, Supertest, and in-memory MongoDB
+- **Code Quality** — ESLint + Prettier configured for both frontend and backend, DRY-compliant shared utilities
 - **Toast Notifications** — Real-time feedback for all user actions using react-hot-toast
 
 ---
@@ -33,6 +38,7 @@ A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Ex
 ### Frontend
 
 - **React 19**: Modern UI library with hooks and context API for state management
+- **TypeScript 5.9**: Type-safe development with strict configuration and shared type definitions
 - **Vite 8**: Lightning-fast build tool and development server with HMR
 - **Tailwind CSS 4**: Utility-first CSS framework for rapid, responsive styling
 - **React Router 7**: Client-side routing with protected routes and layout nesting
@@ -41,7 +47,6 @@ A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Ex
 - **date-fns 4**: Lightweight date utility library for formatting and parsing
 - **react-hot-toast 2**: Lightweight toast notification system
 - **Heroicons 2**: Beautiful hand-crafted SVG icons from the Tailwind CSS team
-- **TypeScript 5.9**: Type-safe development with strict configuration
 
 ### Backend
 
@@ -56,6 +61,10 @@ A full-stack personal finance tracker built with the **MERN** stack (MongoDB, Ex
 - **express-mongo-sanitize 2**: NoSQL injection attack prevention
 - **hpp 0.2**: HTTP parameter pollution protection
 - **dotenv 17**: Environment variable management
+- **Swagger (swagger-jsdoc + swagger-ui-express)**: OpenAPI 3.0 interactive documentation
+- **Jest 30 + Supertest 7**: Integration testing framework
+- **mongodb-memory-server 11**: In-memory MongoDB for isolated test environments
+- **ESLint 9 + Prettier**: Code linting and formatting
 
 ---
 
@@ -120,6 +129,12 @@ cd client && npm run dev
 
 The app will be available at `http://localhost:5173`.
 
+**5. Run backend tests:**
+
+```bash
+cd server && npm test
+```
+
 ---
 
 ## Usage
@@ -129,8 +144,9 @@ The app will be available at `http://localhost:5173`.
 3. **Dashboard** — View summary cards (income, expense, net balance), monthly bar chart, category pie chart, and recent transactions
 4. **Add Transaction** — Create new income or expense entries with amount, category, description, and date
 5. **Filter & Browse** — Filter transactions by month, category, or type on the Transactions page
-6. **Edit / Delete** — Update or remove any transaction you own
-7. **Logout** — End your session; token is cleared from local storage
+6. **Paginate** — Navigate through transaction pages using the pagination controls
+7. **Edit / Delete** — Update or remove any transaction you own
+8. **Logout** — End your session; token is cleared from local storage
 
 ---
 
@@ -147,21 +163,25 @@ The app will be available at `http://localhost:5173`.
 
 ### Data Flow
 
-1. `TransactionContext` manages all transaction state (list, summary, monthly, categories, filters)
-2. When the user navigates to Dashboard or Transactions, context dispatches API calls via `transactionService.js`
-3. Server controllers run Mongoose aggregation pipelines (for summary, monthly, category breakdowns) scoped to `req.user._id`
-4. Results flow back through context and render in Recharts components (`MonthlyChart`, `CategoryChart`) and list components
+1. `TransactionContext` manages all transaction state (list, summary, monthly, categories, filters, pagination)
+2. `ConfigContext` fetches categories and transaction types from `/api/config` on app load — single source of truth
+3. When the user navigates to Dashboard or Transactions, context dispatches API calls via `transactionService.ts`
+4. After any CRUD operation, a `dataVersion` counter increments, triggering automatic re-fetch of transactions and summary data
+5. Server controllers run Mongoose aggregation pipelines (for summary, monthly, category breakdowns) scoped to `req.user._id`
+6. Results flow back through context and render in Recharts components (`MonthlyChart`, `CategoryChart`) and list components
 
 ### Architecture
 
 ```
-Client (React + Vite)          Server (Express + MongoDB)
-┌─────────────────────┐        ┌─────────────────────────┐
-│  AuthContext         │  JWT   │  auth.js middleware      │
-│  TransactionContext  │──────▶│  authController.js       │
-│  Axios Interceptors  │        │  transactionController.js│
-│  Pages & Components  │◀──────│  Mongoose Models         │
-└─────────────────────┘  JSON  └─────────────────────────┘
+Client (React + TypeScript)       Server (Express + MongoDB)
+┌──────────────────────────┐      ┌──────────────────────────────┐
+│  ConfigContext            │      │  configController.js          │
+│  AuthContext              │ JWT  │  auth.js middleware            │
+│  TransactionContext       │─────▶│  authController.js             │
+│  Axios Interceptors       │      │  transactionController.js      │
+│  Pages & Components       │◀─────│  Mongoose Models               │
+│  Shared UI (Navbar,Footer)│ JSON │  errorHandler.js               │
+└──────────────────────────┘      └──────────────────────────────┘
 ```
 
 ---
@@ -173,6 +193,7 @@ Client (React + Vite)          Server (Express + MongoDB)
 | GET | `/` | No | Welcome page with API info |
 | GET | `/api-docs` | No | Swagger / OpenAPI documentation |
 | GET | `/api/health` | No | Health check — returns `{ status, timestamp }` |
+| GET | `/api/config` | No | App configuration (categories, types) |
 | POST | `/api/auth/register` | No | Register a new user account |
 | POST | `/api/auth/login` | No | Login and receive JWT token |
 | GET | `/api/auth/me` | Yes | Get current authenticated user profile |
@@ -195,52 +216,66 @@ Client (React + Vite)          Server (Express + MongoDB)
 
 ```
 s4.6_Expense-Tracker-Mern/
-├── client/                              # React frontend
+├── client/                              # React frontend (TypeScript)
 │   ├── src/
 │   │   ├── App.tsx                      # Router configuration
 │   │   ├── main.tsx                     # React entry point
 │   │   ├── index.css                    # Tailwind CSS imports
+│   │   ├── types/
+│   │   │   └── index.ts                 # Shared TypeScript interfaces
+│   │   ├── constants/
+│   │   │   └── transaction.ts           # Category/type style maps
 │   │   ├── pages/
-│   │   │   ├── Home.jsx                 # Landing page
-│   │   │   ├── Login.jsx                # Login form
-│   │   │   ├── Register.jsx             # Registration form
-│   │   │   ├── Dashboard.jsx            # Charts and summary view
-│   │   │   └── Transactions.jsx         # Transaction list with filters
+│   │   │   ├── Home.tsx                 # Landing page
+│   │   │   ├── Login.tsx                # Login form with Navbar/Footer
+│   │   │   ├── Register.tsx             # Registration form with Navbar/Footer
+│   │   │   ├── Dashboard.tsx            # Charts and summary view
+│   │   │   └── Transactions.tsx         # Transaction list with filters & pagination
 │   │   ├── components/
-│   │   │   ├── ProtectedRoute.jsx       # Auth guard for private routes
+│   │   │   ├── ProtectedRoute.tsx       # Auth guard for private routes
 │   │   │   ├── layout/
-│   │   │   │   └── AppLayout.jsx        # Sidebar + header shell
+│   │   │   │   ├── AppLayout.tsx        # Sidebar + header shell
+│   │   │   │   ├── Navbar.tsx           # Shared public navbar
+│   │   │   │   └── Footer.tsx           # Shared public footer
 │   │   │   ├── dashboard/
-│   │   │   │   ├── SummaryCards.jsx      # Income/expense/balance cards
-│   │   │   │   ├── MonthlyChart.jsx     # Monthly bar chart (Recharts)
-│   │   │   │   ├── CategoryChart.jsx    # Category pie chart (Recharts)
-│   │   │   │   └── RecentTransactions.jsx
+│   │   │   │   ├── SummaryCards.tsx      # Income/expense/balance cards
+│   │   │   │   ├── MonthlyChart.tsx     # Monthly bar chart (Recharts)
+│   │   │   │   ├── CategoryChart.tsx    # Category pie chart (Recharts)
+│   │   │   │   └── RecentTransactions.tsx
 │   │   │   ├── transactions/
-│   │   │   │   ├── FilterBar.jsx        # Month/category/type filters
-│   │   │   │   ├── TransactionList.jsx  # Paginated transaction list
-│   │   │   │   └── TransactionForm.jsx  # Create/edit transaction modal
+│   │   │   │   ├── FilterBar.tsx        # Month/category/type filters
+│   │   │   │   ├── TransactionList.tsx  # Paginated transaction list
+│   │   │   │   └── TransactionForm.tsx  # Create/edit transaction modal (a11y)
 │   │   │   └── ui/
-│   │   │       ├── Skeleton.jsx         # Loading skeleton component
-│   │   │       ├── EmptyState.jsx       # Empty data placeholder
-│   │   │       └── ErrorMessage.jsx     # Error display component
+│   │   │       ├── Skeleton.tsx         # Loading skeleton component
+│   │   │       ├── EmptyState.tsx       # Empty data placeholder
+│   │   │       ├── ErrorMessage.tsx     # Error display component
+│   │   │       ├── FormField.tsx        # Shared input styling utilities
+│   │   │       ├── LoadingSpinner.tsx   # Reusable loading spinner
+│   │   │       └── Pagination.tsx       # Pagination navigation component
 │   │   ├── context/
-│   │   │   ├── AuthContext.jsx          # Auth state + login/register/logout
-│   │   │   └── TransactionContext.jsx   # Transaction state + CRUD + filters
+│   │   │   ├── AuthContext.tsx          # Auth state + login/register/logout
+│   │   │   ├── TransactionContext.tsx   # Transaction state + CRUD + filters
+│   │   │   └── ConfigContext.tsx        # App config from /api/config
 │   │   ├── hooks/
-│   │   │   └── useMediaQuery.js         # Responsive breakpoint hook
+│   │   │   ├── useMediaQuery.ts         # Responsive breakpoint hook
+│   │   │   └── useModalA11y.ts          # Modal accessibility hook
 │   │   ├── services/
 │   │   │   ├── api.ts                   # Axios instance with interceptors
-│   │   │   └── transactionService.js    # Transaction API calls
+│   │   │   ├── transactionService.ts    # Transaction API calls
+│   │   │   └── configService.ts         # Config API call
 │   │   └── utils/
-│   │       ├── formatCurrency.js        # Currency formatting helper
-│   │       └── validation.js            # Client-side validation rules
+│   │       ├── capitalize.ts            # String capitalize utility
+│   │       ├── formatCurrency.ts        # Currency formatting helper
+│   │       └── validation.ts            # Client-side validation rules
 │   ├── public/
 │   │   └── _redirects                   # Netlify SPA routing
 │   ├── .env.example
 │   └── package.json
 ├── server/                              # Express backend
 │   ├── src/
-│   │   ├── index.js                     # Express app entry point
+│   │   ├── app.js                       # Express app configuration
+│   │   ├── index.js                     # Server entry point (DB + listen)
 │   │   ├── config/
 │   │   │   ├── swagger.js               # OpenAPI 3.0 specification
 │   │   │   └── welcomePage.js           # Root welcome HTML page
@@ -249,11 +284,13 @@ s4.6_Expense-Tracker-Mern/
 │   │   │   └── Transaction.js           # Transaction schema with indexes
 │   │   ├── controllers/
 │   │   │   ├── authController.js        # Register, login, getMe
-│   │   │   └── transactionController.js # CRUD + aggregation pipelines
+│   │   │   ├── transactionController.js # CRUD + aggregation pipelines
+│   │   │   └── configController.js      # App configuration endpoint
 │   │   ├── routes/
 │   │   │   ├── index.js                 # Central router
 │   │   │   ├── authRoutes.js            # Auth endpoints
-│   │   │   └── transactionRoutes.js     # Transaction endpoints
+│   │   │   ├── transactionRoutes.js     # Transaction endpoints
+│   │   │   └── configRoutes.js          # Config endpoint
 │   │   ├── middleware/
 │   │   │   ├── auth.js                  # JWT verification middleware
 │   │   │   ├── validate.js              # express-validator result handler
@@ -261,9 +298,16 @@ s4.6_Expense-Tracker-Mern/
 │   │   │   └── validators/
 │   │   │       ├── authValidator.js     # Auth input validation rules
 │   │   │       └── transactionValidator.js # Transaction validation rules
-│   │   └── utils/
-│   │       ├── generateToken.js         # JWT signing utility
-│   │       └── verifyToken.js           # JWT verification utility
+│   │   ├── utils/
+│   │   │   ├── generateToken.js         # JWT signing utility
+│   │   │   └── verifyToken.js           # JWT verification utility
+│   │   └── __tests__/
+│   │       ├── setup.js                 # Test DB setup (mongodb-memory-server)
+│   │       ├── auth.test.js             # Auth integration tests (14 tests)
+│   │       └── transaction.test.js      # Transaction integration tests (18 tests)
+│   ├── jest.config.js                   # Jest configuration
+│   ├── eslint.config.mjs                # ESLint flat config (Node.js)
+│   ├── .prettierrc                      # Prettier formatting rules
 │   ├── .env.example
 │   └── package.json
 ├── .gitignore
@@ -289,6 +333,25 @@ s4.6_Expense-Tracker-Mern/
 
 ---
 
+## Testing
+
+The backend includes **32 integration tests** covering authentication and transaction CRUD operations:
+
+```bash
+cd server && npm test
+```
+
+### Test Coverage
+
+| Suite | Tests | Description |
+|-------|-------|-------------|
+| **Auth** | 14 | Register, login, validation errors, duplicate email, getMe |
+| **Transactions** | 18 | CRUD operations, pagination, filters, user isolation |
+
+Tests run against an in-memory MongoDB instance (`mongodb-memory-server`) for complete isolation — no external database required.
+
+---
+
 ## Deployment
 
 ### Backend — Render
@@ -308,7 +371,7 @@ s4.6_Expense-Tracker-Mern/
 | `MONGO_URI` | Your MongoDB Atlas connection string |
 | `JWT_SECRET` | A cryptographically strong random string (min 32 chars) |
 | `JWT_EXPIRES_IN` | `7d` |
-| `CLIENT_URL` | `https://expense-tracker-mernn.netlify.app` |
+| `CLIENT_URL` | `https://your-app.netlify.app` (no trailing slash or path) |
 
 5. Set **Health Check Path** to `/api/health` for automatic monitoring
 6. Deploy — Render will automatically build and start the server
@@ -339,17 +402,24 @@ s4.6_Expense-Tracker-Mern/
 
 - ✅ User registration and login with JWT authentication
 - ✅ Full CRUD operations for income and expense transactions
-- ✅ Interactive dashboard with summary cards
+- ✅ Interactive dashboard with summary cards (auto-refresh after CRUD)
 - ✅ Monthly income vs. expense bar chart
 - ✅ Category breakdown pie chart
 - ✅ Recent transactions overview on dashboard
 - ✅ Advanced filtering by month, category, and type
-- ✅ Server-side pagination with configurable limits
+- ✅ Server-side pagination with frontend navigation controls
 - ✅ Responsive design with collapsible sidebar
+- ✅ Shared Navbar and Footer across all public pages
 - ✅ Toast notifications for all user actions
 - ✅ Loading skeletons and empty state placeholders
 - ✅ Comprehensive input validation (client + server)
 - ✅ Security hardening (Helmet, rate limiting, sanitization)
+- ✅ Full TypeScript migration with strict mode
+- ✅ Accessible modal dialogs (focus trap, Escape, ARIA)
+- ✅ Backend integration tests (32 tests with Jest + Supertest)
+- ✅ ESLint + Prettier for frontend and backend
+- ✅ Single source of truth for categories via /api/config
+- ✅ Swagger / OpenAPI documentation at /api-docs
 
 **Future Features**
 
@@ -405,11 +475,13 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 - [React](https://react.dev/) — UI library
 - [Vite](https://vite.dev/) — Build tool and dev server
+- [TypeScript](https://www.typescriptlang.org/) — Type-safe JavaScript
 - [Tailwind CSS](https://tailwindcss.com/) — Utility-first CSS framework
 - [Recharts](https://recharts.org/) — Charting library for React
 - [Express](https://expressjs.com/) — Web framework for Node.js
 - [MongoDB Atlas](https://www.mongodb.com/atlas) — Cloud database service
 - [Heroicons](https://heroicons.com/) — SVG icon set
+- [Jest](https://jestjs.io/) — Testing framework
 - [Render](https://render.com/) — Backend hosting platform
 - [Netlify](https://netlify.com/) — Frontend hosting platform
 
