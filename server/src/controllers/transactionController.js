@@ -24,7 +24,7 @@ const createTransaction = async (req, res) => {
 
     const transaction = await Transaction.create(data);
 
-    res.status(201).json(transaction);
+    res.status(201).json({ transaction });
   } catch (error) {
     console.error("CreateTransaction error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -84,7 +84,7 @@ const getTransactions = async (req, res) => {
     const totalPages = Math.ceil(totalCount / limit);
 
     res.status(200).json({
-      data: transactions,
+      transactions,
       pagination: {
         currentPage,
         totalPages,
@@ -117,7 +117,7 @@ const getTransactionById = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    res.status(200).json(transaction);
+    res.status(200).json({ transaction });
   } catch (error) {
     console.error("GetTransactionById error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -144,7 +144,7 @@ const updateTransaction = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    res.status(200).json(transaction);
+    res.status(200).json({ transaction });
   } catch (error) {
     console.error("UpdateTransaction error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -278,7 +278,7 @@ const getMonthlyBreakdown = async (req, res) => {
       },
     ]);
 
-    res.status(200).json(result);
+    res.status(200).json({ breakdown: result });
   } catch (error) {
     console.error("GetMonthlyBreakdown error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -334,7 +334,7 @@ const getCategoryBreakdown = async (req, res) => {
       },
     ]);
 
-    res.status(200).json(result);
+    res.status(200).json({ breakdown: result });
   } catch (error) {
     console.error("GetCategoryBreakdown error:", error);
     res.status(500).json({ message: "Internal server error" });

@@ -182,7 +182,7 @@ const swaggerDefinition = {
       TransactionList: {
         type: "object",
         properties: {
-          data: {
+          transactions: {
             type: "array",
             items: { $ref: "#/components/schemas/Transaction" },
           },
@@ -510,7 +510,12 @@ const swaggerDefinition = {
             description: "Transaction created",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/Transaction" },
+                schema: {
+                  type: "object",
+                  properties: {
+                    transaction: { $ref: "#/components/schemas/Transaction" },
+                  },
+                },
               },
             },
           },
@@ -582,12 +587,17 @@ const swaggerDefinition = {
         ],
         responses: {
           200: {
-            description: "Monthly breakdown array",
+            description: "Monthly breakdown",
             content: {
               "application/json": {
                 schema: {
-                  type: "array",
-                  items: { $ref: "#/components/schemas/MonthlyBreakdownItem" },
+                  type: "object",
+                  properties: {
+                    breakdown: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/MonthlyBreakdownItem" },
+                    },
+                  },
                 },
               },
             },
@@ -629,12 +639,17 @@ const swaggerDefinition = {
         ],
         responses: {
           200: {
-            description: "Category breakdown array",
+            description: "Category breakdown",
             content: {
               "application/json": {
                 schema: {
-                  type: "array",
-                  items: { $ref: "#/components/schemas/CategoryBreakdownItem" },
+                  type: "object",
+                  properties: {
+                    breakdown: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/CategoryBreakdownItem" },
+                    },
+                  },
                 },
               },
             },
@@ -672,7 +687,12 @@ const swaggerDefinition = {
             description: "Transaction details",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/Transaction" },
+                schema: {
+                  type: "object",
+                  properties: {
+                    transaction: { $ref: "#/components/schemas/Transaction" },
+                  },
+                },
               },
             },
           },
@@ -718,7 +738,12 @@ const swaggerDefinition = {
             description: "Transaction updated",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/Transaction" },
+                schema: {
+                  type: "object",
+                  properties: {
+                    transaction: { $ref: "#/components/schemas/Transaction" },
+                  },
+                },
               },
             },
           },
