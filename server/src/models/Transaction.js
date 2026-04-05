@@ -54,7 +54,7 @@ const transactionSchema = new mongoose.Schema(
       required: [true, 'User ID is required'],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 transactionSchema.index({ userId: 1, date: -1 });

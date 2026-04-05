@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
-const { startOfMonth, endOfMonth, parse } = require("date-fns");
-const Transaction = require("../models/Transaction");
+const mongoose = require('mongoose');
+const { startOfMonth, endOfMonth, parse } = require('date-fns');
+const Transaction = require('../models/Transaction');
 
 const { TRANSACTION_TYPES, CATEGORIES } = Transaction;
 
-const WHITELISTED_FIELDS = ["type", "amount", "category", "description", "date"];
+const WHITELISTED_FIELDS = ['type', 'amount', 'category', 'description', 'date'];
 const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -33,12 +33,10 @@ const getTransactions = async (req, res) => {
 
   if (month) {
     if (!MONTH_REGEX.test(month)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid month format. Use YYYY-MM" });
+      return res.status(400).json({ message: 'Invalid month format. Use YYYY-MM' });
     }
 
-    const parsedDate = parse(month, "yyyy-MM", new Date());
+    const parsedDate = parse(month, 'yyyy-MM', new Date());
     filter.date = {
       $gte: startOfMonth(parsedDate),
       $lte: endOfMonth(parsedDate),
@@ -48,7 +46,7 @@ const getTransactions = async (req, res) => {
   if (category) {
     if (!CATEGORIES.includes(category)) {
       return res.status(400).json({
-        message: `Invalid category. Must be one of: ${CATEGORIES.join(", ")}`,
+        message: `Invalid category. Must be one of: ${CATEGORIES.join(', ')}`,
       });
     }
     filter.category = category;
@@ -57,16 +55,13 @@ const getTransactions = async (req, res) => {
   if (type) {
     if (!TRANSACTION_TYPES.includes(type)) {
       return res.status(400).json({
-        message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(", ")}`,
+        message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(', ')}`,
       });
     }
     filter.type = type;
   }
 
-  const limit = Math.min(
-    Math.max(parseInt(rawLimit, 10) || DEFAULT_LIMIT, 1),
-    MAX_LIMIT
-  );
+  const limit = Math.min(Math.max(parseInt(rawLimit, 10) || DEFAULT_LIMIT, 1), MAX_LIMIT);
   const currentPage = Math.max(parseInt(page, 10) || 1, 1);
   const skip = (currentPage - 1) * limit;
 
@@ -94,7 +89,7 @@ const getTransactionById = async (req, res) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ message: "Invalid transaction ID" });
+    return res.status(400).json({ message: 'Invalid transaction ID' });
   }
 
   const transaction = await Transaction.findOne({
@@ -103,7 +98,7 @@ const getTransactionById = async (req, res) => {
   });
 
   if (!transaction) {
-    return res.status(404).json({ message: "Transaction not found" });
+    return res.status(404).json({ message: 'Transaction not found' });
   }
 
   res.status(200).json({ transaction });
@@ -113,7 +108,7 @@ const updateTransaction = async (req, res) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ message: "Invalid transaction ID" });
+    return res.status(400).json({ message: 'Invalid transaction ID' });
   }
 
   const updates = pickFields(req.body, WHITELISTED_FIELDS);
@@ -121,11 +116,11 @@ const updateTransaction = async (req, res) => {
   const transaction = await Transaction.findOneAndUpdate(
     { _id: id, userId: req.user._id },
     updates,
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
 
   if (!transaction) {
-    return res.status(404).json({ message: "Transaction not found" });
+    return res.status(404).json({ message: 'Transaction not found' });
   }
 
   res.status(200).json({ transaction });
@@ -135,7 +130,7 @@ const deleteTransaction = async (req, res) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ message: "Invalid transaction ID" });
+    return res.status(400).json({ message: 'Invalid transaction ID' });
   }
 
   const transaction = await Transaction.findOneAndDelete({
@@ -144,10 +139,10 @@ const deleteTransaction = async (req, res) => {
   });
 
   if (!transaction) {
-    return res.status(404).json({ message: "Transaction not found" });
+    return res.status(404).json({ message: 'Transaction not found' });
   }
 
-  res.status(200).json({ message: "Transaction deleted" });
+  res.status(200).json({ message: 'Transaction deleted' });
 };
 
 const getSummary = async (req, res) => {
@@ -159,12 +154,10 @@ const getSummary = async (req, res) => {
 
   if (month) {
     if (!MONTH_REGEX.test(month)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid month format. Use YYYY-MM" });
+      return res.status(400).json({ message: 'Invalid month format. Use YYYY-MM' });
     }
 
-    const parsedDate = parse(month, "yyyy-MM", new Date());
+    const parsedDate = parse(month, 'yyyy-MM', new Date());
     matchStage.date = {
       $gte: startOfMonth(parsedDate),
       $lte: endOfMonth(parsedDate),
@@ -173,16 +166,16 @@ const getSummary = async (req, res) => {
 
   const result = await Transaction.aggregate([
     { $match: matchStage },
-    { $group: { _id: "$type", total: { $sum: "$amount" } } },
+    { $group: { _id: '$type', total: { $sum: '$amount' } } },
   ]);
 
   const totals = result.reduce(
     (acc, item) => {
-      if (item._id === "income") acc.totalIncome = item.total;
-      if (item._id === "expense") acc.totalExpense = item.total;
+      if (item._id === 'income') acc.totalIncome = item.total;
+      if (item._id === 'expense') acc.totalExpense = item.total;
       return acc;
     },
-    { totalIncome: 0, totalExpense: 0 }
+    { totalIncome: 0, totalExpense: 0 },
   );
 
   totals.netBalance = totals.totalIncome - totals.totalExpense;
@@ -200,7 +193,7 @@ const getMonthlyBreakdown = async (req, res) => {
   if (type) {
     if (!TRANSACTION_TYPES.includes(type)) {
       return res.status(400).json({
-        message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(", ")}`,
+        message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(', ')}`,
       });
     }
     matchStage.type = type;
@@ -210,9 +203,7 @@ const getMonthlyBreakdown = async (req, res) => {
     const parsedYear = parseInt(year, 10);
 
     if (isNaN(parsedYear) || parsedYear < 2000 || parsedYear > 2100) {
-      return res
-        .status(400)
-        .json({ message: "Invalid year. Must be between 2000 and 2100" });
+      return res.status(400).json({ message: 'Invalid year. Must be between 2000 and 2100' });
     }
 
     matchStage.date = {
@@ -226,22 +217,22 @@ const getMonthlyBreakdown = async (req, res) => {
     {
       $group: {
         _id: {
-          month: { $month: "$date" },
-          year: { $year: "$date" },
-          type: "$type",
+          month: { $month: '$date' },
+          year: { $year: '$date' },
+          type: '$type',
         },
-        total: { $sum: "$amount" },
+        total: { $sum: '$amount' },
       },
     },
     {
-      $sort: { "_id.year": 1, "_id.month": 1 },
+      $sort: { '_id.year': 1, '_id.month': 1 },
     },
     {
       $project: {
         _id: 0,
-        month: "$_id.month",
-        year: "$_id.year",
-        type: "$_id.type",
+        month: '$_id.month',
+        year: '$_id.year',
+        type: '$_id.type',
         total: 1,
       },
     },
@@ -260,7 +251,7 @@ const getCategoryBreakdown = async (req, res) => {
   if (type) {
     if (!TRANSACTION_TYPES.includes(type)) {
       return res.status(400).json({
-        message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(", ")}`,
+        message: `Invalid type. Must be one of: ${TRANSACTION_TYPES.join(', ')}`,
       });
     }
     matchStage.type = type;
@@ -268,12 +259,10 @@ const getCategoryBreakdown = async (req, res) => {
 
   if (month) {
     if (!MONTH_REGEX.test(month)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid month format. Use YYYY-MM" });
+      return res.status(400).json({ message: 'Invalid month format. Use YYYY-MM' });
     }
 
-    const parsedDate = parse(month, "yyyy-MM", new Date());
+    const parsedDate = parse(month, 'yyyy-MM', new Date());
     matchStage.date = {
       $gte: startOfMonth(parsedDate),
       $lte: endOfMonth(parsedDate),
@@ -284,15 +273,15 @@ const getCategoryBreakdown = async (req, res) => {
     { $match: matchStage },
     {
       $group: {
-        _id: "$category",
-        total: { $sum: "$amount" },
+        _id: '$category',
+        total: { $sum: '$amount' },
       },
     },
     { $sort: { total: -1 } },
     {
       $project: {
         _id: 0,
-        category: "$_id",
+        category: '$_id',
         total: 1,
       },
     },

@@ -22,10 +22,10 @@ mongoose.set('debug', NODE_ENV !== 'production');
 mongoose
   .connect(MONGO_URI)
   .then(() => {
-    console.log('MongoDB connected successfully');
+    console.info('MongoDB connected successfully');
 
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.info(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {

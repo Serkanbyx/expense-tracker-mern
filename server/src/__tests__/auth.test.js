@@ -12,8 +12,7 @@ const validUser = {
   password: 'Password123',
 };
 
-const registerUser = () =>
-  request(app).post('/api/auth/register').send(validUser);
+const registerUser = () => request(app).post('/api/auth/register').send(validUser);
 
 describe('POST /api/auth/register', () => {
   it('creates a new user and returns token', async () => {
@@ -96,9 +95,7 @@ describe('POST /api/auth/login', () => {
   });
 
   it('returns 400 for missing email', async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ password: 'Password123' });
+    const res = await request(app).post('/api/auth/login').send({ password: 'Password123' });
 
     expect(res.status).toBe(400);
   });
@@ -108,9 +105,7 @@ describe('GET /api/auth/me', () => {
   it('returns user data with valid token', async () => {
     const { body } = await registerUser();
 
-    const res = await request(app)
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${body.token}`);
+    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${body.token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.user.email).toBe(validUser.email);
@@ -132,9 +127,7 @@ describe('GET /api/auth/me', () => {
   });
 
   it('returns 401 with malformed header', async () => {
-    const res = await request(app)
-      .get('/api/auth/me')
-      .set('Authorization', 'NotBearer token');
+    const res = await request(app).get('/api/auth/me').set('Authorization', 'NotBearer token');
 
     expect(res.status).toBe(401);
   });

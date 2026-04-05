@@ -23,8 +23,7 @@ const sampleTransaction = {
   date: '2026-03-15',
 };
 
-const authed = (method, url) =>
-  request(app)[method](url).set('Authorization', `Bearer ${token}`);
+const authed = (method, url) => request(app)[method](url).set('Authorization', `Bearer ${token}`);
 
 beforeEach(async () => {
   token = await registerAndGetToken();
@@ -62,9 +61,7 @@ describe('POST /api/transactions', () => {
   });
 
   it('returns 401 without auth token', async () => {
-    const res = await request(app)
-      .post('/api/transactions')
-      .send(sampleTransaction);
+    const res = await request(app).post('/api/transactions').send(sampleTransaction);
 
     expect(res.status).toBe(401);
   });
@@ -167,8 +164,9 @@ describe('PUT /api/transactions/:id', () => {
   });
 
   it('returns 404 when updating non-existent transaction', async () => {
-    const res = await authed('put', '/api/transactions/507f1f77bcf86cd799439011')
-      .send({ amount: 10 });
+    const res = await authed('put', '/api/transactions/507f1f77bcf86cd799439011').send({
+      amount: 10,
+    });
 
     expect(res.status).toBe(404);
   });
@@ -234,7 +232,7 @@ describe('GET /api/transactions/summary', () => {
 /* ── USER ISOLATION ──────────────────────────────────── */
 
 describe('User isolation', () => {
-  it('cannot access another user\'s transactions', async () => {
+  it("cannot access another user's transactions", async () => {
     const { body } = await authed('post', '/api/transactions').send(sampleTransaction);
     const txId = body.transaction._id;
 

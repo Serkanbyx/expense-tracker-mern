@@ -1,17 +1,17 @@
-const User = require("../models/User");
-const verifyToken = require("../utils/verifyToken");
+const User = require('../models/User');
+const verifyToken = require('../utils/verifyToken');
 
-const AUTH_ERROR = { message: "Not authorized" };
+const AUTH_ERROR = { message: 'Not authorized' };
 
 const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json(AUTH_ERROR);
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
 
     if (!decoded) {
