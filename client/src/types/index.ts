@@ -123,6 +123,7 @@ export interface TransactionFilters {
 
 export interface TransactionState {
   transactions: Transaction[];
+  pagination: Pagination | null;
   summary: SummaryResponse | null;
   monthlyData: MonthlyBreakdownItem[];
   categoryData: CategoryBreakdownItem[];
@@ -140,6 +141,7 @@ export interface TransactionContextValue extends TransactionState {
   editTransaction: (id: string, data: Partial<TransactionInput>) => Promise<Transaction>;
   removeTransaction: (id: string) => Promise<void>;
   setFilters: (filters: Partial<TransactionFilters>) => void;
+  setPage: (page: number) => void;
 }
 
 // ─── Component Props ─────────────────────────────────

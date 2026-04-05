@@ -14,6 +14,7 @@ import type {
   TransactionFilters,
   TransactionState,
   TransactionContextValue,
+  Pagination,
   SummaryResponse,
   MonthlyBreakdownItem,
   CategoryBreakdownItem,
@@ -34,7 +35,7 @@ const TransactionContext = createContext<TransactionContextValue | null>(null);
 type TransactionAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_TRANSACTIONS'; payload: Transaction[] }
+  | { type: 'SET_TRANSACTIONS'; payload: { transactions: Transaction[]; pagination: Pagination } }
   | { type: 'SET_SUMMARY'; payload: SummaryResponse }
   | { type: 'SET_MONTHLY_DATA'; payload: MonthlyBreakdownItem[] }
   | { type: 'SET_CATEGORY_DATA'; payload: CategoryBreakdownItem[] }
@@ -43,14 +44,19 @@ type TransactionAction =
   | { type: 'UPDATE_TRANSACTION'; payload: Transaction }
   | { type: 'DELETE_TRANSACTION'; payload: string };
 
+const ITEMS_PER_PAGE = 10;
+
 const initialFilters: TransactionFilters = {
   month: '',
   category: '',
   type: '',
+  page: 1,
+  limit: ITEMS_PER_PAGE,
 };
 
 const initialState: TransactionState = {
   transactions: [],
+  pagination: null,
   summary: null,
   monthlyData: [],
   categoryData: [],
@@ -68,7 +74,12 @@ const transactionReducer = (state: TransactionState, action: TransactionAction):
       return { ...state, error: action.payload, isLoading: false };
 
     case 'SET_TRANSACTIONS':
-      return { ...state, transactions: action.payload, isLoading: false };
+      return {
+        ...state,
+        transactions: action.payload.transactions,
+        pagination: action.payload.pagination,
+        isLoading: false,
+      };
 
     case 'SET_SUMMARY':
       return { ...state, summary: action.payload };
@@ -121,7 +132,10 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const data = await getTransactions(filters);
-      dispatch({ type: 'SET_TRANSACTIONS', payload: data.transactions });
+      dispatch({
+        type: 'SET_TRANSACTIONS',
+        payload: { transactions: data.transactions, pagination: data.pagination },
+      });
     } catch (error) {
       const message = extractErrorMessage(error, 'Failed to fetch transactions');
       toast.error(message);
@@ -201,12 +215,16 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   }, [invalidateData]);
 
   const setFilters = useCallback((newFilters: Partial<TransactionFilters>): void => {
-    dispatch({ type: 'SET_FILTERS', payload: newFilters });
+    dispatch({ type: 'SET_FILTERS', payload: { ...newFilters, page: 1 } });
+  }, []);
+
+  const setPage = useCallback((page: number): void => {
+    dispatch({ type: 'SET_FILTERS', payload: { page } });
   }, []);
 
   useEffect(() => {
     fetchTransactions(state.filters);
-  }, [state.filters, fetchTransactions]);
+  }, [state.filters, dataVersion, fetchTransactions]);
 
   /* Re-fetch summary when filters change OR after any CRUD operation */
   useEffect(() => {
@@ -225,6 +243,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
         editTransaction,
         removeTransaction,
         setFilters,
+        setPage,
       }}
     >
       {children}

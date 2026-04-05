@@ -1,11 +1,15 @@
 import { useState, useCallback } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { useTransactions } from '../context/TransactionContext';
 import FilterBar from '../components/transactions/FilterBar';
 import TransactionList from '../components/transactions/TransactionList';
 import TransactionForm from '../components/transactions/TransactionForm';
+import Pagination from '../components/ui/Pagination';
 import type { Transaction } from '@/types';
 
 const Transactions = () => {
+  const { pagination, setPage } = useTransactions();
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
@@ -43,6 +47,10 @@ const Transactions = () => {
 
       <FilterBar />
       <TransactionList onEdit={handleEdit} />
+
+      {pagination && (
+        <Pagination pagination={pagination} onPageChange={setPage} />
+      )}
 
       {isFormOpen && (
         <TransactionForm

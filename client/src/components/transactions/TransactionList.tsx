@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import {
   PencilSquareIcon,
@@ -262,14 +262,6 @@ const TransactionList = ({ onEdit }: TransactionListProps) => {
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const sortedTransactions = useMemo(
-    () =>
-      [...transactions].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      ),
-    [transactions],
-  );
-
   const handleDeleteClick = useCallback((transaction: Transaction) => {
     setDeleteTarget(transaction);
   }, []);
@@ -330,7 +322,7 @@ const TransactionList = ({ onEdit }: TransactionListProps) => {
   }
 
   /* Error State */
-  if (error && sortedTransactions.length === 0) {
+  if (error && transactions.length === 0) {
     return (
       <ErrorMessage
         message="Failed to load transactions."
@@ -340,7 +332,7 @@ const TransactionList = ({ onEdit }: TransactionListProps) => {
   }
 
   /* Empty State */
-  if (sortedTransactions.length === 0) {
+  if (transactions.length === 0) {
     return (
       <EmptyState
         icon={InboxIcon}
@@ -353,13 +345,13 @@ const TransactionList = ({ onEdit }: TransactionListProps) => {
   return (
     <>
       <TransactionTable
-        transactions={sortedTransactions}
+        transactions={transactions}
         onEdit={onEdit}
         onDelete={handleDeleteClick}
       />
 
       <TransactionCardList
-        transactions={sortedTransactions}
+        transactions={transactions}
         onEdit={onEdit}
         onDelete={handleDeleteClick}
       />
