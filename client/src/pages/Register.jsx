@@ -130,6 +130,12 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
+          <Link
+            to="/"
+            className="inline-block text-2xl font-bold text-indigo-600 transition hover:opacity-80 mb-2"
+          >
+            ExpenseTracker
+          </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
           <p className="text-sm text-gray-500 mt-1">
             Start tracking your expenses today

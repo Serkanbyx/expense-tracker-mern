@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import {
   HomeIcon,
   BanknotesIcon,
@@ -47,9 +47,9 @@ const AppLayout = () => {
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
-          <h1 className="text-xl font-bold text-indigo-600">
-            Expense Tracker
-          </h1>
+          <Link to="/" className="text-xl font-bold text-indigo-600 transition hover:opacity-80">
+            ExpenseTracker
+          </Link>
           <button
             onClick={closeSidebar}
             className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 md:hidden"
