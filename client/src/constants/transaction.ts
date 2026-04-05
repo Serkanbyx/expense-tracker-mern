@@ -1,33 +1,4 @@
-import type { Category } from '@/types';
-
-// ─── Category Arrays ─────────────────────────────────
-
-export const CATEGORIES: Category[] = [
-  'food',
-  'salary',
-  'transport',
-  'entertainment',
-  'health',
-  'education',
-  'shopping',
-  'bills',
-  'other',
-];
-
-export const INCOME_CATEGORIES: Category[] = ['salary', 'other'];
-
-export const EXPENSE_CATEGORIES: Category[] = [
-  'food',
-  'transport',
-  'entertainment',
-  'health',
-  'education',
-  'shopping',
-  'bills',
-  'other',
-];
-
-// ─── Style Maps ──────────────────────────────────────
+// ─── Style Maps (UI-only concern) ────────────────────
 
 export const CATEGORY_STYLES: Record<string, string> = {
   food: 'bg-orange-100 text-orange-700',

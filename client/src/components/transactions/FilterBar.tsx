@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useTransactions } from '../../context/TransactionContext';
+import { useConfig } from '../../context/ConfigContext';
 import capitalize from '../../utils/capitalize';
-import { CATEGORIES } from '../../constants/transaction';
 
 const getCurrentMonth = (): string => {
   const now = new Date();
@@ -13,6 +13,7 @@ const getCurrentMonth = (): string => {
 
 const FilterBar = () => {
   const { filters, setFilters } = useTransactions();
+  const { config } = useConfig();
 
   const handleFilterChange = useCallback(
     (key: string, value: string) => {
@@ -51,7 +52,7 @@ const FilterBar = () => {
           className="min-h-[44px] w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:w-auto"
         >
           <option value="">All Categories</option>
-          {CATEGORIES.map((cat) => (
+          {config.categories.map((cat) => (
             <option key={cat} value={cat}>
               {capitalize(cat)}
             </option>
@@ -65,8 +66,11 @@ const FilterBar = () => {
           className="min-h-[44px] w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:w-auto"
         >
           <option value="">All Types</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
+          {config.transactionTypes.map((t) => (
+            <option key={t} value={t}>
+              {capitalize(t)}
+            </option>
+          ))}
         </select>
 
         {/* Clear Filters Button */}

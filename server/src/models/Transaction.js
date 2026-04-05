@@ -14,6 +14,18 @@ const CATEGORIES = [
   'other',
 ];
 
+const INCOME_CATEGORIES = ['salary', 'other'];
+const EXPENSE_CATEGORIES = [
+  'food',
+  'transport',
+  'entertainment',
+  'health',
+  'education',
+  'shopping',
+  'bills',
+  'other',
+];
+
 const transactionSchema = new mongoose.Schema(
   {
     type: {
@@ -63,5 +75,7 @@ const Transaction = mongoose.model('Transaction', transactionSchema);
 
 Transaction.TRANSACTION_TYPES = TRANSACTION_TYPES;
 Transaction.CATEGORIES = CATEGORIES;
+Transaction.INCOME_CATEGORIES = INCOME_CATEGORIES;
+Transaction.EXPENSE_CATEGORIES = EXPENSE_CATEGORIES;
 
 module.exports = Transaction;

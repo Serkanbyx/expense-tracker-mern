@@ -9,10 +9,10 @@ import {
   VALIDATION_LIMITS,
 } from '../../utils/validation';
 import capitalize from '../../utils/capitalize';
-import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/transaction';
 import { getInputClass, FieldError } from '../ui/FormField';
+import { useConfig } from '../../context/ConfigContext';
 import useModalA11y from '../../hooks/useModalA11y';
-import type { Transaction, TransactionInput, Category } from '@/types';
+import type { Transaction, TransactionInput } from '@/types';
 
 /* ── Types ───────────────────────────────────────────── */
 
@@ -91,6 +91,7 @@ const TypeToggle = ({ activeType, onChange, disabled }: TypeToggleProps) => (
 
 const TransactionForm = ({ transaction = null, onClose }: TransactionFormProps) => {
   const { addTransaction, editTransaction } = useTransactions();
+  const { config } = useConfig();
   const modalRef = useModalA11y(onClose);
   const isEditMode = Boolean(transaction);
 
@@ -103,12 +104,12 @@ const TransactionForm = ({ transaction = null, onClose }: TransactionFormProps) 
 
   const categories = useMemo(
     () =>
-      formData.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES,
-    [formData.type],
+      formData.type === 'income' ? config.incomeCategories : config.expenseCategories,
+    [formData.type, config],
   );
 
   useEffect(() => {
-    if (!categories.includes(formData.category as Category)) {
+    if (!categories.includes(formData.category)) {
       setFormData((prev) => ({ ...prev, category: '' }));
     }
   }, [formData.type, categories, formData.category]);

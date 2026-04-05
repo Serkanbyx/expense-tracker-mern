@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { ConfigProvider } from './context/ConfigContext';
 import { AuthProvider } from './context/AuthContext';
 import { TransactionProvider } from './context/TransactionContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -12,6 +13,7 @@ import Transactions from './pages/Transactions';
 
 const App = () => {
   return (
+    <ConfigProvider>
     <BrowserRouter>
       <AuthProvider>
         <Toaster
@@ -44,6 +46,7 @@ const App = () => {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </ConfigProvider>
   );
 };
 

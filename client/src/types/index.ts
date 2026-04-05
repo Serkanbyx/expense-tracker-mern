@@ -144,6 +144,15 @@ export interface TransactionContextValue extends TransactionState {
   setPage: (page: number) => void;
 }
 
+// ─── App Config ─────────────────────────────────────
+
+export interface AppConfig {
+  transactionTypes: string[];
+  categories: string[];
+  incomeCategories: string[];
+  expenseCategories: string[];
+}
+
 // ─── Component Props ─────────────────────────────────
 
 export interface ChildrenProps {

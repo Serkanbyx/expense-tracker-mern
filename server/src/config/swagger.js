@@ -251,6 +251,50 @@ const swaggerDefinition = {
           timestamp: { type: 'integer', example: 1712345678901 },
         },
       },
+      AppConfig: {
+        type: 'object',
+        properties: {
+          transactionTypes: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['income', 'expense'],
+          },
+          categories: {
+            type: 'array',
+            items: { type: 'string' },
+            example: [
+              'food',
+              'salary',
+              'transport',
+              'entertainment',
+              'health',
+              'education',
+              'shopping',
+              'bills',
+              'other',
+            ],
+          },
+          incomeCategories: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['salary', 'other'],
+          },
+          expenseCategories: {
+            type: 'array',
+            items: { type: 'string' },
+            example: [
+              'food',
+              'transport',
+              'entertainment',
+              'health',
+              'education',
+              'shopping',
+              'bills',
+              'other',
+            ],
+          },
+        },
+      },
     },
     responses: {
       Unauthorized: {
@@ -311,6 +355,24 @@ const swaggerDefinition = {
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/HealthCheck' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/config': {
+      get: {
+        tags: ['Configuration'],
+        summary: 'Get application configuration',
+        description:
+          'Returns transaction types, categories, and category-type mappings. Public endpoint — no authentication required.',
+        responses: {
+          200: {
+            description: 'Application configuration',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/AppConfig' },
               },
             },
           },
@@ -808,6 +870,10 @@ const swaggerDefinition = {
     {
       name: 'Health',
       description: 'API health monitoring',
+    },
+    {
+      name: 'Configuration',
+      description: 'Application configuration (categories, types)',
     },
     {
       name: 'Authentication',
