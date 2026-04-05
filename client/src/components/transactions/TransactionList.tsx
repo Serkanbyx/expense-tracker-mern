@@ -1,0 +1,405 @@
+import { useState, useMemo, useCallback } from 'react';
+import { format } from 'date-fns';
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  InboxIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
+import { useTransactions } from '../../context/TransactionContext';
+import formatCurrency from '../../utils/formatCurrency';
+import { TableRowSkeleton, MobileCardSkeleton } from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
+import ErrorMessage from '../ui/ErrorMessage';
+import type { Transaction } from '@/types';
+
+/* ── Style Maps ──────────────────────────────────────── */
+
+const CATEGORY_STYLES: Record<string, string> = {
+  food: 'bg-orange-100 text-orange-700',
+  salary: 'bg-emerald-100 text-emerald-700',
+  transport: 'bg-blue-100 text-blue-700',
+  entertainment: 'bg-purple-100 text-purple-700',
+  health: 'bg-rose-100 text-rose-700',
+  education: 'bg-cyan-100 text-cyan-700',
+  shopping: 'bg-pink-100 text-pink-700',
+  bills: 'bg-amber-100 text-amber-700',
+  other: 'bg-gray-100 text-gray-700',
+};
+
+const TYPE_STYLES: Record<string, string> = {
+  income: 'bg-emerald-100 text-emerald-700',
+  expense: 'bg-red-100 text-red-700',
+};
+
+const getCategoryStyle = (category: string): string =>
+  CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other;
+
+const getTypeStyle = (type: string): string =>
+  TYPE_STYLES[type] ?? TYPE_STYLES.expense;
+
+const capitalize = (str: string): string =>
+  str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+
+const SKELETON_COUNT = 5;
+
+/* ── Delete Confirmation Dialog ──────────────────────── */
+
+interface DeleteConfirmDialogProps {
+  transaction: Transaction;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isDeleting: boolean;
+}
+
+const DeleteConfirmDialog = ({ transaction, onConfirm, onCancel, isDeleting }: DeleteConfirmDialogProps) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-black/50 transition-opacity"
+      onClick={onCancel}
+      aria-hidden="true"
+    />
+
+    <div className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+      <div className="flex flex-col items-center text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+        </div>
+
+        <h3 className="mt-4 text-lg font-semibold text-gray-900">
+          Delete Transaction
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Are you sure you want to delete{' '}
+          <span className="font-medium text-gray-700">
+            {transaction.description || 'this transaction'}
+          </span>
+          ? This action cannot be undone.
+        </p>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isDeleting}
+          className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={isDeleting}
+          className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+        >
+          {isDeleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Action Buttons ──────────────────────────────────── */
+
+interface ActionButtonsProps {
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const ActionButtons = ({ onEdit, onDelete }: ActionButtonsProps) => (
+  <div className="flex items-center justify-end gap-1">
+    <button
+      type="button"
+      onClick={onEdit}
+      aria-label="Edit transaction"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+    >
+      <PencilSquareIcon className="h-5 w-5" />
+    </button>
+    <button
+      type="button"
+      onClick={onDelete}
+      aria-label="Delete transaction"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+    >
+      <TrashIcon className="h-5 w-5" />
+    </button>
+  </div>
+);
+
+/* ── Amount Cell ─────────────────────────────────────── */
+
+interface AmountDisplayProps {
+  type: string;
+  amount: number;
+}
+
+const AmountDisplay = ({ type, amount }: AmountDisplayProps) => {
+  const isIncome = type === 'income';
+
+  return (
+    <span
+      className={`text-sm font-semibold ${isIncome ? 'text-emerald-600' : 'text-red-600'}`}
+    >
+      {isIncome ? '+' : '-'}
+      {formatCurrency(amount)}
+    </span>
+  );
+};
+
+/* ── Desktop Table ───────────────────────────────────── */
+
+const TABLE_HEADERS: readonly string[] = ['Date', 'Type', 'Category', 'Description', 'Amount', 'Actions'];
+
+interface TransactionTableProps {
+  transactions: Transaction[];
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (transaction: Transaction) => void;
+}
+
+const TransactionTable = ({ transactions, onEdit, onDelete }: TransactionTableProps) => (
+  <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block">
+    <table className="w-full text-left text-sm">
+      <thead>
+        <tr className="border-b border-gray-200 bg-gray-50">
+          {TABLE_HEADERS.map((header) => (
+            <th
+              key={header}
+              className={`px-4 py-3 font-medium text-gray-500 ${
+                header === 'Amount' || header === 'Actions' ? 'text-right' : ''
+              }`}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-100">
+        {transactions.map((transaction) => (
+          <tr
+            key={transaction._id}
+            className="transition-colors hover:bg-gray-50/50"
+          >
+            <td className="whitespace-nowrap px-4 py-3 text-gray-500">
+              {format(new Date(transaction.date), 'dd MMM yyyy')}
+            </td>
+            <td className="px-4 py-3">
+              <span
+                className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeStyle(transaction.type)}`}
+              >
+                {capitalize(transaction.type)}
+              </span>
+            </td>
+            <td className="px-4 py-3">
+              <span
+                className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${getCategoryStyle(transaction.category)}`}
+              >
+                {capitalize(transaction.category)}
+              </span>
+            </td>
+            <td className="max-w-xs truncate px-4 py-3 text-gray-700">
+              {transaction.description || '—'}
+            </td>
+            <td className="whitespace-nowrap px-4 py-3 text-right">
+              <AmountDisplay
+                type={transaction.type}
+                amount={transaction.amount}
+              />
+            </td>
+            <td className="px-4 py-3">
+              <ActionButtons
+                onEdit={() => onEdit(transaction)}
+                onDelete={() => onDelete(transaction)}
+              />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+/* ── Mobile Card List ────────────────────────────────── */
+
+interface TransactionCardListProps {
+  transactions: Transaction[];
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (transaction: Transaction) => void;
+}
+
+const TransactionCardList = ({ transactions, onEdit, onDelete }: TransactionCardListProps) => (
+  <div className="space-y-3 md:hidden">
+    {transactions.map((transaction) => (
+        <div
+          key={transaction._id}
+          className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <time className="text-sm text-gray-400">
+              {format(new Date(transaction.date), 'dd MMM yyyy')}
+            </time>
+            <AmountDisplay
+              type={transaction.type}
+              amount={transaction.amount}
+            />
+          </div>
+
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeStyle(transaction.type)}`}
+            >
+              {capitalize(transaction.type)}
+            </span>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getCategoryStyle(transaction.category)}`}
+            >
+              {capitalize(transaction.category)}
+            </span>
+          </div>
+
+          {transaction.description && (
+            <p className="mt-2 truncate text-sm text-gray-600">
+              {transaction.description}
+            </p>
+          )}
+
+          <div className="mt-3 flex justify-end border-t border-gray-100 pt-3">
+            <ActionButtons
+              onEdit={() => onEdit(transaction)}
+              onDelete={() => onDelete(transaction)}
+            />
+          </div>
+        </div>
+      ))}
+  </div>
+);
+
+/* ── Main Component ──────────────────────────────────── */
+
+interface TransactionListProps {
+  onEdit: (transaction: Transaction) => void;
+}
+
+const TransactionList = ({ onEdit }: TransactionListProps) => {
+  const { transactions, isLoading, error, removeTransaction, fetchTransactions, filters } =
+    useTransactions();
+
+  const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const sortedTransactions = useMemo(
+    () =>
+      [...transactions].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+    [transactions],
+  );
+
+  const handleDeleteClick = useCallback((transaction: Transaction) => {
+    setDeleteTarget(transaction);
+  }, []);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteTarget(null);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    try {
+      await removeTransaction(deleteTarget._id);
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteTarget, removeTransaction]);
+
+  /* Loading Skeleton */
+  if (isLoading) {
+    return (
+      <>
+        {/* Desktop skeleton */}
+        <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                {TABLE_HEADERS.map((header) => (
+                  <th
+                    key={header}
+                    className={`px-4 py-3 font-medium text-gray-500 ${
+                      header === 'Amount' || header === 'Actions' ? 'text-right' : ''
+                    }`}
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+                <TableRowSkeleton key={i} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile skeleton */}
+        <div className="space-y-3 md:hidden">
+          {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+            <MobileCardSkeleton key={i} />
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  /* Error State */
+  if (error && sortedTransactions.length === 0) {
+    return (
+      <ErrorMessage
+        message="Failed to load transactions."
+        onRetry={() => fetchTransactions(filters)}
+      />
+    );
+  }
+
+  /* Empty State */
+  if (sortedTransactions.length === 0) {
+    return (
+      <EmptyState
+        icon={InboxIcon}
+        title="No transactions found"
+        description="Try adjusting your filters or add a new transaction."
+      />
+    );
+  }
+
+  return (
+    <>
+      <TransactionTable
+        transactions={sortedTransactions}
+        onEdit={onEdit}
+        onDelete={handleDeleteClick}
+      />
+
+      <TransactionCardList
+        transactions={sortedTransactions}
+        onEdit={onEdit}
+        onDelete={handleDeleteClick}
+      />
+
+      {deleteTarget && (
+        <DeleteConfirmDialog
+          transaction={deleteTarget}
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+          isDeleting={isDeleting}
+        />
+      )}
+    </>
+  );
+};
+
+export default TransactionList;
