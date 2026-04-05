@@ -11,6 +11,8 @@ import {
 } from '../utils/validation';
 import { getInputClass, FieldError } from '../components/ui/FormField';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 
 const Register = () => {
   const [formData, setFormData] = useState<{ name: string; email: string; password: string }>({
@@ -114,15 +116,12 @@ const Register = () => {
   const isValid = Object.keys(errors).length === 0;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Navbar />
+
+      <main className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <Link
-            to="/"
-            className="inline-block text-2xl font-bold text-indigo-600 transition hover:opacity-80 mb-2"
-          >
-            ExpenseTracker
-          </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
           <p className="text-sm text-gray-500 mt-1">
             Start tracking your expenses today
@@ -222,6 +221,9 @@ const Register = () => {
           </Link>
         </p>
       </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

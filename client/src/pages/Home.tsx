@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import {
   ChartBarIcon,
   ShieldCheckIcon,
@@ -104,45 +106,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
-              <BanknotesIcon className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">
-              Expense<span className="text-indigo-600">Tracker</span>
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            {isAuthenticated ? (
-              <Link
-                to="/dashboard"
-                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  Sign Up Free
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-linear-to-br from-indigo-50 via-white to-purple-50">
@@ -326,25 +290,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                <BanknotesIcon className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-lg font-bold text-gray-900">
-                Expense<span className="text-indigo-600">Tracker</span>
-              </span>
-            </div>
-            <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} ExpenseTracker. Built with React
-              &amp; Node.js
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
