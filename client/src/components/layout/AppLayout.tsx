@@ -109,6 +109,26 @@ const AppLayout = () => {
             <ArrowRightStartOnRectangleIcon className="h-5 w-5" />
             Logout
           </button>
+          <p className="mt-3 text-center text-xs text-gray-400">
+            Created by{' '}
+            <a
+              href="https://serkanbayraktar.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-indigo-500 transition hover:text-indigo-600"
+            >
+              Serkanby
+            </a>
+            {' | '}
+            <a
+              href="https://github.com/Serkanbyx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-indigo-500 transition hover:text-indigo-600"
+            >
+              Github
+            </a>
+          </p>
         </div>
       </aside>
 
