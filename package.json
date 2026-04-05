@@ -11,6 +11,9 @@
     "react",
     "nodejs"
   ],
-  "author": "",
+  "author": {
+    "name": "Serkanby",
+    "url": "https://serkanbayraktar.com/"
+  },
   "license": "MIT"
 }

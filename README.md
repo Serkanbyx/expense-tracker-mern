@@ -170,6 +170,8 @@ Client (React + Vite)          Server (Express + MongoDB)
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
+| GET | `/` | No | Welcome page with API info |
+| GET | `/api-docs` | No | Swagger / OpenAPI documentation |
 | GET | `/api/health` | No | Health check — returns `{ status, timestamp }` |
 | POST | `/api/auth/register` | No | Register a new user account |
 | POST | `/api/auth/login` | No | Login and receive JWT token |
@@ -239,6 +241,9 @@ s4.6_Expense-Tracker-Mern/
 ├── server/                              # Express backend
 │   ├── src/
 │   │   ├── index.js                     # Express app entry point
+│   │   ├── config/
+│   │   │   ├── swagger.js               # OpenAPI 3.0 specification
+│   │   │   └── welcomePage.js           # Root welcome HTML page
 │   │   ├── models/
 │   │   │   ├── User.js                  # User schema with bcrypt hashing
 │   │   │   └── Transaction.js           # Transaction schema with indexes
@@ -388,11 +393,11 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## Developer
 
-**Serkan Bayraktar**
+**Serkanby**
 
-- 🌐 [serkanbayraktar.com](https://serkanbayraktar.com/)
-- 🐙 [@Serkanbyx](https://github.com/Serkanbyx)
-- 📧 [serkanbyx1@gmail.com](mailto:serkanbyx1@gmail.com)
+- Website: [serkanbayraktar.com](https://serkanbayraktar.com/)
+- GitHub: [@Serkanbyx](https://github.com/Serkanbyx)
+- Email: [serkanbyx1@gmail.com](mailto:serkanbyx1@gmail.com)
 
 ---
 
@@ -412,9 +417,9 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## Contact
 
-- 🐛 [Open an Issue](https://github.com/Serkanbyx/s4.6_Expense-Tracker-Mern/issues)
-- 📧 [serkanbyx1@gmail.com](mailto:serkanbyx1@gmail.com)
-- 🌐 [serkanbayraktar.com](https://serkanbayraktar.com/)
+- [Open an Issue](https://github.com/Serkanbyx/s4.6_Expense-Tracker-Mern/issues)
+- Email: [serkanbyx1@gmail.com](mailto:serkanbyx1@gmail.com)
+- Website: [serkanbayraktar.com](https://serkanbayraktar.com/)
 
 ---
 

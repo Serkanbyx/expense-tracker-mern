@@ -8,6 +8,9 @@ const cors = require('cors');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const { rateLimit } = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+const getWelcomePage = require('./config/welcomePage');
 
 // --- Validate required environment variables ---
 const requiredEnvVars = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'JWT_EXPIRES_IN', 'CLIENT_URL'];
@@ -67,6 +70,15 @@ const authLimiter = rateLimit({
 
 app.use(globalLimiter);
 app.use('/api/auth', authLimiter);
+
+// --- Welcome page & Swagger docs ---
+app.get('/', (_req, res) => {
+  res.type('html').send(getWelcomePage());
+});
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Expense Tracker API Docs',
+}));
 
 // --- Routes ---
 const routes = require('./routes');
