@@ -5,7 +5,6 @@ const registerRules = [
     .trim()
     .notEmpty()
     .withMessage('Name is required')
-    .escape()
     .isLength({ max: 50 })
     .withMessage('Name must be at most 50 characters'),
 

@@ -20,14 +20,12 @@ const createTransactionRules = [
     .trim()
     .notEmpty()
     .withMessage('Category is required')
-    .escape()
     .isIn(CATEGORIES)
     .withMessage(`Category must be one of: ${CATEGORIES.join(', ')}`),
 
   body('description')
     .optional()
     .trim()
-    .escape()
     .isLength({ max: 200 })
     .withMessage('Description cannot exceed 200 characters'),
 
@@ -57,14 +55,12 @@ const updateTransactionRules = [
   body('category')
     .optional()
     .trim()
-    .escape()
     .isIn(CATEGORIES)
     .withMessage(`Category must be one of: ${CATEGORIES.join(', ')}`),
 
   body('description')
     .optional()
     .trim()
-    .escape()
     .isLength({ max: 200 })
     .withMessage('Description cannot exceed 200 characters'),
 

@@ -112,14 +112,14 @@ const transformCategoryData = (rawData: CategoryBreakdownItem[]): PieDataItem[] 
 };
 
 const CategoryChart = () => {
-  const { categoryData, isLoading, error, fetchCategoryBreakdown } =
+  const { categoryData, isLoading, error, fetchCategoryBreakdown, dataVersion } =
     useTransactions();
   const [activeTab, setActiveTab] = useState('expense');
   const isMobile = useMediaQuery('(max-width: 639px)');
 
   useEffect(() => {
     fetchCategoryBreakdown({ type: activeTab });
-  }, [activeTab, fetchCategoryBreakdown]);
+  }, [activeTab, fetchCategoryBreakdown, dataVersion]);
 
   const chartData = useMemo(
     () => transformCategoryData(categoryData),

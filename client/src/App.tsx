@@ -14,38 +14,38 @@ import Transactions from './pages/Transactions';
 const App = () => {
   return (
     <ConfigProvider>
-    <BrowserRouter>
-      <AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: { fontSize: '14px' },
-          }}
-        />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+      <BrowserRouter>
+        <AuthProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: { fontSize: '14px' },
+            }}
+          />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected routes with shared layout */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <TransactionProvider>
-                  <AppLayout />
-                </TransactionProvider>
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/transactions" element={<Transactions />} />
-          </Route>
+            {/* Protected routes with shared layout */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <TransactionProvider>
+                    <AppLayout />
+                  </TransactionProvider>
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/transactions" element={<Transactions />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </ConfigProvider>
   );
 };

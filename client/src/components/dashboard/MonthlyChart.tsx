@@ -81,13 +81,13 @@ const transformMonthlyData = (rawData: MonthlyBreakdownItem[]): ChartDataItem[] 
 };
 
 const MonthlyChart = () => {
-  const { monthlyData, isLoading, error, fetchMonthlyBreakdown } =
+  const { monthlyData, isLoading, error, fetchMonthlyBreakdown, dataVersion } =
     useTransactions();
   const isMobile = useMediaQuery('(max-width: 639px)');
 
   useEffect(() => {
     fetchMonthlyBreakdown();
-  }, [fetchMonthlyBreakdown]);
+  }, [fetchMonthlyBreakdown, dataVersion]);
 
   const chartData = useMemo(
     () => transformMonthlyData(monthlyData),

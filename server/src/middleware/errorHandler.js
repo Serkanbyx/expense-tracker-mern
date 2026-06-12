@@ -23,7 +23,9 @@ const errorHandler = (err, _req, res, _next) => {
 
   // --- MongoDB duplicate key (code 11000) ---
   if (err.code === 11000) {
-    return res.status(409).json({ message: 'Duplicate field value' });
+    const field = Object.keys(err.keyValue || err.keyPattern || {})[0];
+    const message = field ? `${field} already in use` : 'Duplicate field value';
+    return res.status(409).json({ message });
   }
 
   // --- Determine status code ---

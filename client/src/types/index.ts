@@ -133,6 +133,7 @@ export interface TransactionState {
 }
 
 export interface TransactionContextValue extends TransactionState {
+  dataVersion: number;
   fetchTransactions: (filters?: TransactionFilters) => Promise<void>;
   fetchSummary: (filters?: TransactionFilters) => Promise<void>;
   fetchMonthlyBreakdown: (filters?: TransactionFilters) => Promise<void>;

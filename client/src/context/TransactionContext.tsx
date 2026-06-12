@@ -235,6 +235,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     <TransactionContext.Provider
       value={{
         ...state,
+        dataVersion,
         fetchTransactions,
         fetchSummary,
         fetchMonthlyBreakdown,
